@@ -5,3 +5,5 @@
 
 /.quarto/
 /_site/
+.DS_Store
+hpai-challenge/.DS_Store
