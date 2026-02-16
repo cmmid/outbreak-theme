@@ -140,20 +140,6 @@
     "text": "Analytical limitations\n\nAttack rates are crude: The attack rates presented use total registered farms as the denominator. Not all farms may have been actively stocked during the outbreak period, so true attack rates among at-risk farms may differ.\nNo adjustment for spatial confounding: Differences in attack rates across species and production types may be partly or wholly explained by the geographic concentration of the outbreak rather than true biological differences.\nEpidemic curve right-truncation: The most recent days of the epidemic curve are likely incomplete due to delays between suspicion and confirmation. The apparent case count in the final days may underestimate the true incidence.\nMovement network is descriptive only: The movement section presents network structure and case involvement but does not model whether movements are associated with infection risk. Temporal precedence (movements before confirmation) does not establish causation. The network also only covers chicken broiler farms, so transmission pathways for duck and layer farms remain unobserved.\nNo formal statistical testing: This report is purely descriptive. Differences in attack rates have not been tested for statistical significance, and no regression or spatial modelling has been applied."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "CMMID Outbreak Response",
-    "section": "",
-    "text": "Shared resources to support outbreak response theme activity."
-  },
-  {
-    "objectID": "index.html#hpai-modelling-challenge",
-    "href": "index.html#hpai-modelling-challenge",
-    "title": "CMMID Outbreak Response",
-    "section": "2026 HPAI Modelling Challenge",
-    "text": "2026 HPAI Modelling Challenge\nAnalysis reports for the simulated HPAI outbreak scenario (WILIMAN-ID modelling challenge).\n\nPhase 1\n\nGeneral Epidemic Description — outbreak distribution by species and production type, epidemic timeline, spatial maps, movement network, and culling response\nTemporal Analysis — epidemic curves, growth rate estimation, and detection delay analysis"
-  },
-  {
     "objectID": "hpai-challenge/analysis/temporal.html",
     "href": "hpai-challenge/analysis/temporal.html",
     "title": "HPAI Outbreak Temporal Analysis",
@@ -208,5 +194,82 @@
     "title": "HPAI Outbreak Temporal Analysis",
     "section": "Detection Delay by Method",
     "text": "Detection Delay by Method\n\n\n\n\nTable 4: Detection delays stratified by surveillance method. Sample sizes and summary statistics are shown for each detection pathway.\n\n\n\n\n\n\nDetection Method\nN\nMean (days)\nMedian (days)\nSD\nRange\n\n\n\n\nPassive\n96\n1.9\n2\n1\n1-5\n\n\nPreshipment\n3\n1.0\n1\n0\n1-1\n\n\n\nNote: \n\n\n\n\n\n\n\n Kruskal-Wallis test: χ² = 3.50, p = 0.061\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nComparison across detection methods shows:\n\nPassive surveillance (96 cases): Mean delay 1.9 days - reflects clinical detection and farmer reporting\nPreshipment testing (3 cases): Mean delay 1.0 days - may detect subclinical infections\nContact tracing (0 cases): No cases with delay data or suspicion dates - proactive surveillance\n\nDetection delays appear similar across methods, indicating consistent laboratory processing regardless of detection pathway."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "CMMID Outbreak Response",
+    "section": "",
+    "text": "Shared resources to support outbreak response theme activity."
+  },
+  {
+    "objectID": "index.html#hpai-modelling-challenge",
+    "href": "index.html#hpai-modelling-challenge",
+    "title": "CMMID Outbreak Response",
+    "section": "2026 HPAI Modelling Challenge",
+    "text": "2026 HPAI Modelling Challenge\nPreliminary\nAnalysis reports for the simulated HPAI outbreak scenario (WILIMAN-ID modelling challenge).\n\nPhase 1\n\nGeneral Epidemic Description — outbreak distribution by species and production type, epidemic timeline, spatial maps, movement network, and culling response\nTemporal Analysis — epidemic curves, growth rate estimation, and detection delay analysis\nSpecies Comparison — transmission patterns, growth rates, and mortality escalation compared between chicken and duck"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html",
+    "href": "hpai-challenge/analysis/species-comparison.html",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "",
+    "text": "The Phase 1 outbreak involves 103 confirmed cases across two species. This analysis examines whether transmission patterns differ between chicken and duck farms.\n\n\n\n\nTable 1: Outbreak summary by species\n\n\n\n\n\n\nSpecies\nCases\nFarms at risk\nAttack rate (%)\nFirst confirmed\nLast confirmed\nDetection methods\n\n\n\n\nChicken\n81\n4435\n1.83\nDec 22\nJan 13\ncontact_tracing, passive, preshipment\n\n\nDuck\n22\n4725\n0.47\nJan 02\nJan 13\npassive\n\n\n\n\n\n\n\n\nChicken cases (81) outnumber duck cases (22) nearly 4:1. The chicken epidemic began 11 days before the first duck case was confirmed. Duck cases are detected exclusively through passive surveillance, while chicken cases also benefit from preshipment testing and contact tracing."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#overview",
+    "href": "hpai-challenge/analysis/species-comparison.html#overview",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "",
+    "text": "The Phase 1 outbreak involves 103 confirmed cases across two species. This analysis examines whether transmission patterns differ between chicken and duck farms.\n\n\n\n\nTable 1: Outbreak summary by species\n\n\n\n\n\n\nSpecies\nCases\nFarms at risk\nAttack rate (%)\nFirst confirmed\nLast confirmed\nDetection methods\n\n\n\n\nChicken\n81\n4435\n1.83\nDec 22\nJan 13\ncontact_tracing, passive, preshipment\n\n\nDuck\n22\n4725\n0.47\nJan 02\nJan 13\npassive\n\n\n\n\n\n\n\n\nChicken cases (81) outnumber duck cases (22) nearly 4:1. The chicken epidemic began 11 days before the first duck case was confirmed. Duck cases are detected exclusively through passive surveillance, while chicken cases also benefit from preshipment testing and contact tracing."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#epidemic-curves-by-species",
+    "href": "hpai-challenge/analysis/species-comparison.html#epidemic-curves-by-species",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Epidemic curves by species",
+    "text": "Epidemic curves by species\n\n\n\n\n\n\n\n\nFigure 1: Daily and cumulative incidence by species\n\n\n\n\n\nThe chicken epidemic shows sustained growth from late December, while duck cases emerge from early January with a slower accumulation rate. Both species show accelerating case counts in the final days of Phase 1."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#between-farm-growth-rate-by-species",
+    "href": "hpai-challenge/analysis/species-comparison.html#between-farm-growth-rate-by-species",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Between-farm growth rate by species",
+    "text": "Between-farm growth rate by species\n\n\n\n\n\n\n\n\nFigure 2: Daily growth rate of cumulative cases by species (7-day rolling mean)\n\n\n\n\n\n\n\n\n\nTable 2: Growth rate summary by species (during period with ≥3 cumulative cases)\n\n\n\n\n\n\nSpecies\nMean r(t)\nMedian r(t)\nDoubling time (days)\nPeriod\n\n\n\n\nChicken\n0.22\n0.203\n3.2\nDec 25 – Jan 13\n\n\nDuck\n0.24\n0.203\n2.9\nJan 04 – Jan 13"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#within-farm-mortality-growth",
+    "href": "hpai-challenge/analysis/species-comparison.html#within-farm-mortality-growth",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Within-farm mortality growth",
+    "text": "Within-farm mortality growth\nThe mortality ledger data provides daily death counts for three farms: two chicken broiler farms (2395, 3013) and one duck conventional farm (8120). This allows comparison of within-farm disease progression by species.\n\n\n\n\n\n\n\n\nFigure 3: Daily mortality by farm, coloured by species\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 4: Daily mortality normalised by farm capacity (%)\n\n\n\n\n\n\n\n\n\nTable 3: Within-farm mortality escalation summary\n\n\n\n\n\n\nFarm ID\nSpecies\nCapacity\nEscalation start\nPeak date\nPeak deaths/day\nPeak (% capacity)\nGrowth rate (r)\nDoubling time (days)\n\n\n\n\n2395\nChicken\n2139\nJan 03\nJan 08\n300\n14.0\n0.87\n0.8\n\n\n3013\nChicken\n2197\nJan 09\nJan 14\n300\n13.7\n0.64\n1.1\n\n\n8120\nDuck\n13291\nDec 14\nJan 09\n1000\n7.5\n0.20\n3.5\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 5: Mortality escalation aligned by onset, normalised by capacity"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#spatial-distribution-by-species",
+    "href": "hpai-challenge/analysis/species-comparison.html#spatial-distribution-by-species",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Spatial distribution by species",
+    "text": "Spatial distribution by species\n\n\n\n\n\n\n\n\nFigure 6: Spatial distribution of confirmed cases by species\n\n\n\n\n\n\n\n\n\nTable 4: Median nearest-neighbour distance between cases (km)\n\n\n\n\n\n\nSpecies\nSame-species NN (km)\nCross-species NN (km)\nCases\n\n\n\n\nChicken\n4.2\n5.6\n81\n\n\nDuck\n7.5\n3.7\n22"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#detection-and-response-by-species",
+    "href": "hpai-challenge/analysis/species-comparison.html#detection-and-response-by-species",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Detection and response by species",
+    "text": "Detection and response by species\n\n\n\n\nTable 5: Detection method by species\n\n\n\n\n\n\nDetection Method\nChicken\nDuck\n\n\n\n\nContact Tracing\n1\n0\n\n\nPassive\n74\n22\n\n\nPreshipment\n6\n0\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 7: Time from suspicion to confirmation by species\n\n\n\n\n\n\n\n\n\nTable 6: Preventive culling by species\n\n\n\n\n\n\nSpecies\nProduction\nPreventive culls\n\n\n\n\nChicken\nBroiler 1\n8\n\n\nChicken\nBroiler 2\n10\n\n\nChicken\nLayer\n1\n\n\nDuck\nConventional\n25\n\n\nDuck\nOrganic\n8\n\n\n\n\n\n\n\n\nDuck farms account for 33 of 52 preventive culls (63%), despite contributing only 22 of 103 confirmed cases (21%). This suggests a more precautionary approach to duck farm culling."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#movement-network",
+    "href": "hpai-challenge/analysis/species-comparison.html#movement-network",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Movement network",
+    "text": "Movement network\nAnimal movement records are available exclusively for the chicken supply chain: all 7,187 recorded movements are from broiler_1 (grower) to broiler_2 (finisher) farms. No duck movements are recorded.\n\n\n\n\nTable 7: Movement network summary (chicken only)\n\n\n\n\n\n\nMetric\nValue\n\n\n\n\nTotal movements\n7,187\n\n\nUnique source farms (broiler_1)\n1,248\n\n\nUnique destination farms (broiler_2)\n2,746\n\n\nMovements from case farms\n88\n\n\nMovements to case farms\n165\n\n\nDirect case-to-case movements\n3\n\n\n\n\n\n\n\n\nThe chicken movement network connects broiler_1 farms (source) to broiler_2 farms (destination). This supply chain may explain the disproportionately high attack rate in broiler_2 farms (1.8% overall for chicken vs 0.5% for duck) and the earlier onset of the chicken epidemic.\nThe absence of recorded duck movements suggests duck-to-duck transmission occurs through different pathways — potentially environmental contamination, shared water sources, or wild bird contact rather than commercial animal movements."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/species-comparison.html#summary",
+    "href": "hpai-challenge/analysis/species-comparison.html#summary",
+    "title": "HPAI Outbreak: Species Comparison",
+    "section": "Summary",
+    "text": "Summary\nKey differences between species:\n\nTiming: The chicken epidemic began 11 days before duck cases appeared, suggesting either earlier introduction or faster initial spread in the chicken population.\nScale: Chicken farms have higher attack rates (1.8% vs 0.5%) despite a larger population at risk (4,435 vs 4,725 farms).\nTransmission pathway: Chicken cases are linked by a commercial movement network (broiler_1→broiler_2), providing a clear mechanistic pathway for between-farm spread. Duck cases lack recorded movements, pointing to alternative transmission routes.\nDetection: Chicken cases benefit from multiple detection methods (passive, preshipment, contact tracing), while all duck cases are detected passively. This may affect the apparent timing and completeness of case ascertainment in each species.\nResponse: Preventive culling is applied disproportionately to duck farms, possibly reflecting geographic proximity to outbreaks or different risk assessments for duck production systems.\n\n\nLimitations\n\nThe mortality ledger data covers only 3 farms (2 chicken, 1 duck), limiting within-farm growth comparisons.\nThe absence of duck movement data does not necessarily mean ducks are not moved — movements may occur through unrecorded channels.\nDifferent detection methods between species may create ascertainment bias: earlier/more complete detection in chickens could inflate apparent attack rates relative to ducks.\nGrowth rate estimates are sensitive to the small number of duck cases, particularly in the early epidemic period."
   }
 ]
