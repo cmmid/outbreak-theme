@@ -14,6 +14,8 @@ website:
             href: hpai-challenge/analysis/phase-1-q-1.qmd
           - text: "Temporal Analysis"
             href: hpai-challenge/analysis/temporal.qmd
+          - text: "Species Comparison"
+            href: hpai-challenge/analysis/species-comparison.qmd
 
 format:
   html:

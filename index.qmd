@@ -6,9 +6,12 @@ Shared resources to support outbreak response theme activity.
 
 ## 2026 HPAI Modelling Challenge
 
+**Preliminary**
+
 Analysis reports for the simulated HPAI outbreak scenario ([WILIMAN-ID modelling challenge](https://www.wiliman-id.eu/modelling-challenge/)).
 
 ### Phase 1
 
 - [General Epidemic Description](hpai-challenge/analysis/phase-1-q-1.qmd) — outbreak distribution by species and production type, epidemic timeline, spatial maps, movement network, and culling response
 - [Temporal Analysis](hpai-challenge/analysis/temporal.qmd) — epidemic curves, growth rate estimation, and detection delay analysis
+- [Species Comparison](hpai-challenge/analysis/species-comparison.qmd) — transmission patterns, growth rates, and mortality escalation compared between chicken and duck

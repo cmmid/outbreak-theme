@@ -1,0 +1,476 @@
+---
+title: "HPAI Outbreak: Species Comparison"
+subtitle: "Phase 1: Do transmission patterns differ between chicken and duck?"
+date: today
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(sf)
+library(zoo)
+
+theme_set(theme_minimal(base_size = 12))
+here::i_am("hpai-challenge/analysis/species-comparison.qmd")
+knitr::opts_knit$set(root.dir = here::here())
+
+species_colours <- c("chicken" = "#ff7f0e", "duck" = "#1f77b4")
+```
+
+```{r load-data}
+population <- read_csv(here::here("hpai-challenge/data/canonical/population.csv"),
+                       show_col_types = FALSE)
+
+cases <- read_csv(here::here("hpai-challenge/data/phase-1/cases.csv"),
+                  show_col_types = FALSE) |>
+  mutate(across(starts_with("date"), ymd),
+         across(starts_with("cull_s") | starts_with("cull_e"), ymd))
+
+cases_full <- cases |>
+  left_join(population |> select(farm_id, species, production, capacity, x, y),
+            by = "farm_id")
+
+mortality <- read_csv(here::here("hpai-challenge/data/phase-1/mortality_ledgers/mortality_ledgers.csv"),
+                      show_col_types = FALSE) |>
+  mutate(date = ymd(date)) |>
+  left_join(population |> select(farm_id, species), by = "farm_id")
+
+movement <- read_csv(here::here("hpai-challenge/data/phase-1/movement.csv"),
+                     show_col_types = FALSE) |>
+  mutate(date = ymd(date))
+
+prev_culls <- read_csv(here::here("hpai-challenge/data/phase-1/prev_culls.csv"),
+                       show_col_types = FALSE) |>
+  left_join(population |> select(farm_id, species, production), by = "farm_id")
+
+counties <- st_read(here::here("hpai-challenge/data/canonical/counties_32626.geojson"),
+                    quiet = TRUE)
+```
+
+```{r derived}
+# Population counts by species
+pop_by_species <- population |>
+  group_by(species) |>
+  summarise(n_farms = n(), total_capacity = sum(capacity), .groups = "drop")
+
+# Case counts by species
+cases_by_species <- cases_full |>
+  group_by(species) |>
+  summarise(
+    n_cases = n(),
+    first_confirmed = min(date_confirmed),
+    last_confirmed = max(date_confirmed),
+    .groups = "drop"
+  ) |>
+  left_join(pop_by_species, by = "species") |>
+  mutate(attack_rate = n_cases / n_farms * 100)
+
+date_range <- range(cases_full$date_confirmed)
+```
+
+## Overview
+
+The Phase 1 outbreak involves <code>`r nrow(cases)`</code> confirmed cases across two species. This analysis examines whether transmission patterns differ between chicken and duck farms.
+
+```{r tbl-overview}
+#| tbl-cap: "Outbreak summary by species"
+
+cases_full |>
+  group_by(species) |>
+  summarise(
+    Cases = n(),
+    `Farms at risk` = pop_by_species$n_farms[match(first(species), pop_by_species$species)],
+    `Attack rate (%)` = round(Cases / `Farms at risk` * 100, 2),
+    `First confirmed` = format(min(date_confirmed), "%b %d"),
+    `Last confirmed` = format(max(date_confirmed), "%b %d"),
+    `Detection methods` = paste(sort(unique(detection_method)), collapse = ", "),
+    .groups = "drop"
+  ) |>
+  mutate(species = str_to_title(species)) |>
+  rename(Species = species) |>
+  kable(align = "lccccl") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+Chicken cases (<code>`r cases_by_species$n_cases[cases_by_species$species == "chicken"]`</code>) outnumber duck cases (<code>`r cases_by_species$n_cases[cases_by_species$species == "duck"]`</code>) nearly 4:1. The chicken epidemic began <code>`r as.numeric(cases_by_species$first_confirmed[cases_by_species$species == "duck"] - cases_by_species$first_confirmed[cases_by_species$species == "chicken"])`</code> days before the first duck case was confirmed. Duck cases are detected exclusively through passive surveillance, while chicken cases also benefit from preshipment testing and contact tracing.
+
+## Epidemic curves by species
+
+```{r fig-epicurves, fig.width=10, fig.height=8, fig.cap="Daily and cumulative incidence by species"}
+
+# Daily incidence
+daily <- cases_full |>
+  count(date_confirmed, species) |>
+  complete(date_confirmed = seq(date_range[1], date_range[2], by = "day"),
+           species = c("chicken", "duck"),
+           fill = list(n = 0))
+
+p_daily <- ggplot(daily, aes(x = date_confirmed, y = n, fill = species)) +
+  geom_col(position = "dodge", width = 0.8) +
+  scale_fill_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d") +
+  labs(x = NULL, y = "Daily confirmed cases",
+       title = "A) Daily incidence by species") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+
+# Cumulative
+cumul <- daily |>
+  arrange(date_confirmed) |>
+  group_by(species) |>
+  mutate(cumulative = cumsum(n)) |>
+  ungroup()
+
+p_cumul <- ggplot(cumul, aes(x = date_confirmed, y = cumulative,
+                              colour = species)) +
+  geom_step(linewidth = 1) +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d") +
+  labs(x = NULL, y = "Cumulative cases",
+       title = "B) Cumulative incidence by species") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+
+p_daily / p_cumul
+```
+
+The chicken epidemic shows sustained growth from late December, while duck cases emerge from early January with a slower accumulation rate. Both species show accelerating case counts in the final days of Phase 1.
+
+## Between-farm growth rate by species
+
+```{r fig-growth-rate, fig.width=10, fig.height=5, fig.cap="Daily growth rate of cumulative cases by species (7-day rolling mean)"}
+
+growth <- cumul |>
+  filter(cumulative > 0) |>
+  group_by(species) |>
+  mutate(
+    log_cumul = log(cumulative),
+    r_daily = log_cumul - lag(log_cumul),
+    r_smooth = rollmean(r_daily, k = 5, fill = NA, align = "right")
+  ) |>
+  ungroup()
+
+ggplot(growth |> filter(!is.na(r_smooth)),
+       aes(x = date_confirmed, y = r_smooth, colour = species)) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d") +
+  labs(x = NULL, y = "Growth rate r(t)",
+       title = "Between-farm epidemic growth rate",
+       subtitle = "r(t) = d/dt log(cumulative cases), 5-day rolling mean") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+```
+
+```{r tbl-growth-summary}
+#| tbl-cap: "Growth rate summary by species (during period with ≥3 cumulative cases)"
+
+growth |>
+  filter(cumulative >= 3, !is.na(r_daily), is.finite(r_daily)) |>
+  group_by(species) |>
+  summarise(
+    `Mean r(t)` = round(mean(r_daily, na.rm = TRUE), 3),
+    `Median r(t)` = round(median(r_daily, na.rm = TRUE), 3),
+    `Doubling time (days)` = round(log(2) / mean(r_daily, na.rm = TRUE), 1),
+    `Period` = paste(format(min(date_confirmed), "%b %d"), "–",
+                     format(max(date_confirmed), "%b %d")),
+    .groups = "drop"
+  ) |>
+  mutate(species = str_to_title(species)) |>
+  rename(Species = species) |>
+  kable(align = "lcccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Within-farm mortality growth
+
+The mortality ledger data provides daily death counts for three farms: two chicken broiler farms (2395, 3013) and one duck conventional farm (8120). This allows comparison of within-farm disease progression by species.
+
+```{r fig-mortality-raw, fig.width=10, fig.height=5, fig.cap="Daily mortality by farm, coloured by species"}
+
+ggplot(mortality, aes(x = date, y = dead, colour = species)) +
+  geom_line(aes(group = farm_id), linewidth = 0.8) +
+  geom_point(aes(shape = factor(farm_id)), size = 1.5, alpha = 0.7) +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_shape_manual(values = c("2395" = 16, "3013" = 17, "8120" = 15),
+                     name = "Farm ID") +
+  labs(x = NULL, y = "Daily deaths",
+       title = "Daily mortality by farm") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+```
+
+```{r fig-mortality-normalised, fig.width=10, fig.height=5, fig.cap="Daily mortality normalised by farm capacity (%)"}
+
+mortality_norm <- mortality |>
+  mutate(dead_pct = dead / capacity * 100)
+
+ggplot(mortality_norm, aes(x = date, y = dead_pct, colour = species)) +
+  geom_line(aes(group = farm_id), linewidth = 0.8) +
+  geom_point(aes(shape = factor(farm_id)), size = 1.5, alpha = 0.7) +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_shape_manual(values = c("2395" = 16, "3013" = 17, "8120" = 15),
+                     name = "Farm ID") +
+  labs(x = NULL, y = "Daily deaths (% of capacity)",
+       title = "Daily mortality normalised by farm capacity") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+```
+
+```{r within-farm-growth}
+# Identify escalation phase for each farm: first day with mortality > baseline threshold
+# Use threshold of > 2x median baseline mortality
+
+farm_growth <- mortality |>
+  group_by(farm_id, species, capacity) |>
+  mutate(
+    baseline_median = median(dead[dead <= quantile(dead, 0.5)]),
+    threshold = max(3, 2 * baseline_median),
+    escalation_start = min(date[dead > threshold], na.rm = TRUE),
+    is_escalation = date >= escalation_start,
+    days_since_escalation = as.numeric(date - escalation_start)
+  ) |>
+  ungroup()
+
+# Fit exponential to escalation phase
+farm_fits <- farm_growth |>
+  filter(is_escalation, dead > 0) |>
+  group_by(farm_id, species, capacity) |>
+  summarise(
+    escalation_start = first(escalation_start),
+    peak_date = date[which.max(dead)],
+    peak_daily = max(dead),
+    peak_pct = round(max(dead) / first(capacity) * 100, 1),
+    n_escalation_days = n(),
+    # Fit log-linear model for doubling time
+    r_within = coef(lm(log(dead) ~ days_since_escalation,
+                       data = pick(everything())))[2],
+    doubling_time = log(2) / r_within,
+    .groups = "drop"
+  )
+```
+
+```{r tbl-within-farm}
+#| tbl-cap: "Within-farm mortality escalation summary"
+
+farm_fits |>
+  mutate(species = str_to_title(species)) |>
+  select(
+    `Farm ID` = farm_id,
+    Species = species,
+    Capacity = capacity,
+    `Escalation start` = escalation_start,
+    `Peak date` = peak_date,
+    `Peak deaths/day` = peak_daily,
+    `Peak (% capacity)` = peak_pct,
+    `Growth rate (r)` = r_within,
+    `Doubling time (days)` = doubling_time
+  ) |>
+  mutate(
+    `Escalation start` = format(`Escalation start`, "%b %d"),
+    `Peak date` = format(`Peak date`, "%b %d"),
+    `Growth rate (r)` = round(`Growth rate (r)`, 2),
+    `Doubling time (days)` = round(`Doubling time (days)`, 1)
+  ) |>
+  kable(align = "clccccccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+```{r fig-escalation-aligned, fig.width=10, fig.height=5, fig.cap="Mortality escalation aligned by onset, normalised by capacity"}
+
+escalation_data <- farm_growth |>
+  filter(is_escalation) |>
+  mutate(dead_pct = dead / capacity * 100)
+
+ggplot(escalation_data, aes(x = days_since_escalation, y = dead_pct,
+                             colour = species)) +
+  geom_line(aes(group = farm_id), linewidth = 0.8) +
+  geom_point(aes(shape = factor(farm_id)), size = 2) +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_shape_manual(values = c("2395" = 16, "3013" = 17, "8120" = 15),
+                     name = "Farm ID") +
+  scale_y_log10() +
+  labs(x = "Days since escalation onset", y = "Daily deaths (% capacity, log scale)",
+       title = "Mortality escalation aligned by onset",
+       subtitle = "Normalised by farm capacity to compare across farm sizes") +
+  theme(legend.position = "bottom")
+```
+
+## Spatial distribution by species
+
+```{r fig-spatial, fig.width=10, fig.height=8, fig.cap="Spatial distribution of confirmed cases by species"}
+
+cases_sf <- cases_full |>
+  filter(!is.na(x), !is.na(y)) |>
+  st_as_sf(coords = c("x", "y"), crs = st_crs(counties))
+
+ggplot() +
+  geom_sf(data = counties, fill = "grey95", colour = "grey40") +
+  geom_sf(data = cases_sf, aes(colour = species, shape = species),
+          size = 3, alpha = 0.8) +
+  scale_colour_manual(values = species_colours, labels = str_to_title, name = "Species") +
+  scale_shape_manual(values = c("chicken" = 17, "duck" = 16), labels = str_to_title, name = "Species") +
+  labs(title = "Confirmed cases by species") +
+  theme_void(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+```{r nn-distances}
+# Nearest-neighbour distances within and between species
+cases_coords <- cases_full |>
+  filter(!is.na(x), !is.na(y)) |>
+  select(farm_id, species, x, y)
+
+nn_summary <- cases_coords |>
+  group_by(species) |>
+  group_modify(~ {
+    focal <- .x
+    # Same-species NN
+    dists_same <- as.matrix(dist(focal |> select(x, y)))
+    diag(dists_same) <- Inf
+    nn_same <- apply(dists_same, 1, min) / 1000 # convert to km
+
+    # Cross-species NN
+    other_species <- setdiff(c("chicken", "duck"), .y$species)
+    other <- cases_coords |> filter(species == other_species)
+    dists_cross <- as.matrix(
+      proxy::dist(focal |> select(x, y), other |> select(x, y))
+    )
+    nn_cross <- apply(dists_cross, 1, min) / 1000
+
+    tibble(
+      `Same-species NN (km)` = round(median(nn_same), 1),
+      `Cross-species NN (km)` = round(median(nn_cross), 1),
+      n = nrow(focal)
+    )
+  }) |>
+  ungroup()
+```
+
+```{r tbl-nn}
+#| tbl-cap: "Median nearest-neighbour distance between cases (km)"
+
+nn_summary |>
+  mutate(species = str_to_title(species)) |>
+  rename(Species = species, Cases = n) |>
+  kable(align = "lccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Detection and response by species
+
+```{r tbl-detection}
+#| tbl-cap: "Detection method by species"
+
+cases_full |>
+  count(species, detection_method) |>
+  pivot_wider(names_from = species, values_from = n, values_fill = 0) |>
+  mutate(detection_method = str_replace_all(detection_method, "_", " ") |> str_to_title()) |>
+  rename(`Detection Method` = detection_method,
+         Chicken = chicken, Duck = duck) |>
+  kable(align = "lcc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+```{r fig-detection-delay, fig.width=10, fig.height=4, fig.cap="Time from suspicion to confirmation by species"}
+
+delay_data <- cases_full |>
+  filter(!is.na(date_suspicious)) |>
+  mutate(delay = as.numeric(date_confirmed - date_suspicious))
+
+ggplot(delay_data, aes(x = species, y = delay, fill = species)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 21) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 1.5) +
+  scale_fill_manual(values = species_colours, guide = "none") +
+  scale_x_discrete(labels = str_to_title) +
+  labs(x = NULL, y = "Days (suspicion to confirmation)",
+       title = "Detection delay by species") +
+  coord_flip()
+```
+
+```{r tbl-culling}
+#| tbl-cap: "Preventive culling by species"
+
+prev_culls |>
+  count(species, production) |>
+  mutate(
+    species = str_to_title(species),
+    production = str_replace_all(production, "_", " ") |> str_to_title()
+  ) |>
+  rename(Species = species, Production = production, `Preventive culls` = n) |>
+  kable(align = "llc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+Duck farms account for <code>`r sum(prev_culls$species == "duck")`</code> of <code>`r nrow(prev_culls)`</code> preventive culls (<code>`r round(100 * sum(prev_culls$species == "duck") / nrow(prev_culls))`</code>%), despite contributing only <code>`r cases_by_species$n_cases[cases_by_species$species == "duck"]`</code> of <code>`r sum(cases_by_species$n_cases)`</code> confirmed cases (<code>`r round(100 * cases_by_species$n_cases[cases_by_species$species == "duck"] / sum(cases_by_species$n_cases))`</code>%). This suggests a more precautionary approach to duck farm culling.
+
+## Movement network
+
+Animal movement records are available exclusively for the **chicken** supply chain: all <code>`r comma(nrow(movement))`</code> recorded movements are from broiler_1 (grower) to broiler_2 (finisher) farms. No duck movements are recorded.
+
+```{r tbl-movement-summary}
+#| tbl-cap: "Movement network summary (chicken only)"
+
+mov_cases <- movement |>
+  mutate(
+    source_case = source_farm %in% cases$farm_id,
+    dest_case = dest_farm %in% cases$farm_id
+  )
+
+tibble(
+  Metric = c("Total movements", "Unique source farms (broiler_1)",
+             "Unique destination farms (broiler_2)",
+             "Movements from case farms", "Movements to case farms",
+             "Direct case-to-case movements"),
+  Value = c(
+    comma(nrow(movement)),
+    comma(n_distinct(movement$source_farm)),
+    comma(n_distinct(movement$dest_farm)),
+    comma(sum(mov_cases$source_case)),
+    comma(sum(mov_cases$dest_case)),
+    comma(sum(mov_cases$source_case & mov_cases$dest_case))
+  )
+) |>
+  kable(align = "lc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+The chicken movement network connects broiler_1 farms (source) to broiler_2 farms (destination). This supply chain may explain the disproportionately high attack rate in broiler_2 farms (<code>`r round(cases_by_species$attack_rate[cases_by_species$species == "chicken"], 1)`</code>% overall for chicken vs <code>`r round(cases_by_species$attack_rate[cases_by_species$species == "duck"], 1)`</code>% for duck) and the earlier onset of the chicken epidemic.
+
+The absence of recorded duck movements suggests duck-to-duck transmission occurs through different pathways — potentially environmental contamination, shared water sources, or wild bird contact rather than commercial animal movements.
+
+## Summary
+
+```{r summary-stats}
+chicken_stats <- cases_by_species |> filter(species == "chicken")
+duck_stats <- cases_by_species |> filter(species == "duck")
+onset_diff <- as.numeric(duck_stats$first_confirmed - chicken_stats$first_confirmed)
+```
+
+Key differences between species:
+
+- **Timing**: The chicken epidemic began <code>`r onset_diff`</code> days before duck cases appeared, suggesting either earlier introduction or faster initial spread in the chicken population.
+
+- **Scale**: Chicken farms have higher attack rates (<code>`r round(chicken_stats$attack_rate, 1)`</code>% vs <code>`r round(duck_stats$attack_rate, 1)`</code>%) despite a larger population at risk (<code>`r comma(chicken_stats$n_farms)`</code> vs <code>`r comma(duck_stats$n_farms)`</code> farms).
+
+- **Transmission pathway**: Chicken cases are linked by a commercial movement network (broiler_1→broiler_2), providing a clear mechanistic pathway for between-farm spread. Duck cases lack recorded movements, pointing to alternative transmission routes.
+
+- **Detection**: Chicken cases benefit from multiple detection methods (passive, preshipment, contact tracing), while all duck cases are detected passively. This may affect the apparent timing and completeness of case ascertainment in each species.
+
+- **Response**: Preventive culling is applied disproportionately to duck farms, possibly reflecting geographic proximity to outbreaks or different risk assessments for duck production systems.
+
+### Limitations
+
+- The mortality ledger data covers only 3 farms (2 chicken, 1 duck), limiting within-farm growth comparisons.
+- The absence of duck movement data does not necessarily mean ducks are not moved — movements may occur through unrecorded channels.
+- Different detection methods between species may create ascertainment bias: earlier/more complete detection in chickens could inflate apparent attack rates relative to ducks.
+- Growth rate estimates are sensitive to the small number of duck cases, particularly in the early epidemic period.
