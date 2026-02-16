@@ -1,0 +1,798 @@
+---
+title: "HPAI Outbreak: General Epidemic Description"
+subtitle: "Phase 1: December 20, 2025 – January 13, 2026"
+date: today
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(zoo)
+library(tidygraph)
+library(ggraph)
+
+theme_set(theme_minimal(base_size = 12))
+here::i_am("hpai-challenge/analysis/phase-1-q-1.qmd")
+knitr::opts_knit$set(root.dir = here::here())
+```
+
+```{r load-data}
+# Case data
+cases <- read_csv(here::here("hpai-challenge/data/phase-1/cases.csv"),
+                   show_col_types = FALSE) |>
+  mutate(
+    date_suspicious = ymd(date_suspicious),
+    date_confirmed  = ymd(date_confirmed),
+    cull_start      = ymd(cull_start),
+    cull_end        = ymd(cull_end)
+  )
+
+# Farm population
+population <- read_csv(here::here("hpai-challenge/data/canonical/population.csv"),
+                        show_col_types = FALSE)
+
+# Spatial boundaries
+counties  <- st_read(here::here("hpai-challenge/data/canonical/counties_32626.geojson"),
+                      quiet = TRUE)
+districts <- st_read(here::here("hpai-challenge/data/canonical/districts_32626.geojson"),
+                      quiet = TRUE)
+
+# Movement data
+movements <- read_csv(here::here("hpai-challenge/data/phase-1/movement.csv"),
+                       show_col_types = FALSE) |>
+  mutate(date = ymd(date))
+
+# Preventive culls
+prev_culls <- read_csv(here::here("hpai-challenge/data/phase-1/prev_culls.csv"),
+                        show_col_types = FALSE) |>
+  mutate(
+    cull_start = ymd(cull_start),
+    cull_end   = ymd(cull_end)
+  )
+
+# Join cases with farm attributes
+cases_full <- cases |>
+  left_join(population, by = "farm_id")
+
+# Spatial points for affected farms
+cases_sf <- cases_full |>
+  filter(!is.na(x), !is.na(y)) |>
+  st_as_sf(coords = c("x", "y"), crs = st_crs(counties))
+
+# Reference: all farms as spatial
+farms_sf <- population |>
+  filter(!is.na(x), !is.na(y)) |>
+  st_as_sf(coords = c("x", "y"), crs = st_crs(counties))
+```
+
+# Outbreak Overview
+
+```{r overview-stats}
+n_cases      <- nrow(cases_full)
+date_range   <- range(cases_full$date_confirmed, na.rm = TRUE)
+duration     <- as.numeric(date_range[2] - date_range[1])
+n_counties   <- n_distinct(cases_full$county)
+n_districts  <- n_distinct(cases_full$district)
+n_species    <- n_distinct(cases_full$species)
+n_farms_total <- nrow(population)
+
+cull_summary <- cases_full |>
+  count(cull_status) |>
+  deframe()
+```
+
+As of **`r format(date_range[2], "%B %d, %Y")`**, a total of **`r n_cases` HPAI-confirmed outbreaks** have been reported across **`r n_counties` counties** and **`r n_districts` districts** since the index case on **`r format(date_range[1], "%B %d, %Y")`** (`r duration` days). Both species present in the poultry population (duck, chicken) are affected. Of the `r n_cases` confirmed farms, `r cull_summary["completed"]` have completed culling, `r cull_summary["in progress"]` are in progress, and `r cull_summary["planned"]` are planned.
+
+# Distribution by Species and Production Type
+
+## Outbreak counts
+
+```{r tbl-species-production}
+#| tbl-cap: "Confirmed HPAI outbreaks by species and production type, with attack rate relative to total farm population."
+
+# Outbreaks per species x production
+outbreak_counts <- cases_full |>
+  count(species, production, name = "outbreaks")
+
+# Population denominator
+pop_counts <- population |>
+  count(species, production, name = "farms")
+
+species_prod <- pop_counts |>
+  left_join(outbreak_counts, by = c("species", "production")) |>
+  mutate(
+    outbreaks = replace_na(outbreaks, 0),
+    attack_rate_pct = outbreaks / farms * 100
+  )
+
+# Totals by species
+species_totals <- species_prod |>
+  group_by(species) |>
+  summarise(
+    farms = sum(farms),
+    outbreaks = sum(outbreaks),
+    attack_rate_pct = outbreaks / farms * 100,
+    .groups = "drop"
+  ) |>
+  mutate(production = "All")
+
+# Grand total
+grand_total <- tibble(
+  species = "Total",
+  production = "All",
+  farms = sum(species_prod$farms),
+  outbreaks = sum(species_prod$outbreaks),
+  attack_rate_pct = sum(species_prod$outbreaks) / sum(species_prod$farms) * 100
+)
+
+bind_rows(species_prod, species_totals, grand_total) |>
+  mutate(
+    production = str_replace_all(production, "_", " ") |> str_to_title(),
+    species = str_to_title(species)
+  ) |>
+  select(
+    Species = species,
+    `Production Type` = production,
+    `Total Farms` = farms,
+    Outbreaks = outbreaks,
+    `Attack Rate (%)` = attack_rate_pct
+  ) |>
+  kable(digits = 1, align = "llccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) |>
+  row_spec(nrow(species_prod) + 1, bold = TRUE) |>
+  row_spec(nrow(species_prod) + 2, bold = TRUE) |>
+  row_spec(nrow(species_prod) + nrow(species_totals) + 1,
+           bold = TRUE, hline_after = TRUE)
+```
+
+## Capacity affected
+
+```{r tbl-capacity}
+#| tbl-cap: "Estimated animal capacity affected by species and production type."
+
+capacity_summary <- cases_full |>
+  group_by(species, production) |>
+  summarise(
+    outbreaks = n(),
+    total_capacity = sum(capacity, na.rm = TRUE),
+    mean_capacity  = mean(capacity, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    production = str_replace_all(production, "_", " ") |> str_to_title(),
+    species = str_to_title(species)
+  )
+
+capacity_totals <- capacity_summary |>
+  summarise(
+    species = "Total",
+    production = "All",
+    outbreaks = sum(outbreaks),
+    total_capacity = sum(total_capacity),
+    mean_capacity = total_capacity / outbreaks
+  )
+
+bind_rows(capacity_summary, capacity_totals) |>
+  select(
+    Species = species,
+    `Production Type` = production,
+    Outbreaks = outbreaks,
+    `Total Capacity` = total_capacity,
+    `Mean Capacity / Farm` = mean_capacity
+  ) |>
+  kable(digits = 0, align = "llccc",
+        format.args = list(big.mark = ",")) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) |>
+  row_spec(nrow(capacity_summary) + 1, bold = TRUE)
+```
+
+## Detection method
+
+```{r tbl-detection}
+#| tbl-cap: "Outbreaks by detection method and species."
+
+detection_tbl <- cases_full |>
+  count(species, detection_method) |>
+  mutate(
+    species = str_to_title(species),
+    detection_method = str_replace_all(detection_method, "_", " ") |>
+      str_to_title()
+  ) |>
+  pivot_wider(names_from = detection_method, values_from = n,
+              values_fill = 0) |>
+  bind_rows(
+    cases_full |>
+      count(detection_method) |>
+      mutate(
+        species = "Total",
+        detection_method = str_replace_all(detection_method, "_", " ") |>
+          str_to_title()
+      ) |>
+      pivot_wider(names_from = detection_method, values_from = n,
+                  values_fill = 0)
+  ) |>
+  rename(Species = species)
+
+total_row <- which(detection_tbl$Species == "Total")
+
+detection_tbl |>
+  kable(align = "lccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) |>
+  row_spec(total_row, bold = TRUE)
+```
+
+# Epidemic Timeline
+
+## Daily epidemic curve
+
+```{r fig-epicurve-daily, fig.cap="Daily confirmed HPAI outbreaks (bars) with 7-day rolling average (red line). Bars are coloured by species.", fig.width=10, fig.height=5}
+daily <- cases_full |>
+  count(date_confirmed, species, name = "cases")
+
+daily_total <- cases_full |>
+  count(date_confirmed, name = "cases") |>
+  arrange(date_confirmed) |>
+  mutate(ma_7 = rollmean(cases, k = 7, fill = NA, align = "right"))
+
+ggplot() +
+  geom_col(
+    data = daily,
+    aes(x = date_confirmed, y = cases, fill = species),
+    alpha = 0.8
+  ) +
+  geom_line(
+    data = daily_total,
+    aes(x = date_confirmed, y = ma_7),
+    colour = "#d62728", linewidth = 1
+  ) +
+  scale_fill_manual(
+    values = c("duck" = "#1f77b4", "chicken" = "#ff7f0e"),
+    labels = str_to_title,
+    name = "Species"
+  ) +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d",
+               expand = expansion(mult = 0.02)) +
+  labs(
+    title = "Daily HPAI Outbreak Confirmations",
+    x = "Date of Confirmation", y = "Number of Outbreaks"
+  ) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Cumulative epidemic curve
+
+```{r fig-epicurve-cumulative, fig.cap="Cumulative confirmed HPAI outbreaks over time, coloured by species.", fig.width=10, fig.height=5}
+cumulative <- cases_full |>
+  arrange(date_confirmed) |>
+  group_by(species) |>
+  mutate(cum_n = row_number()) |>
+  ungroup()
+
+ggplot(cumulative, aes(x = date_confirmed, y = cum_n, colour = species)) +
+  geom_step(linewidth = 1) +
+  scale_colour_manual(
+    values = c("duck" = "#1f77b4", "chicken" = "#ff7f0e"),
+    labels = str_to_title,
+    name = "Species"
+  ) +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d",
+               expand = expansion(mult = 0.02)) +
+  labs(
+    title = "Cumulative HPAI Outbreaks by Species",
+    x = "Date of Confirmation", y = "Cumulative Outbreaks"
+  ) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Incidence by epidemiological week
+
+```{r tbl-weekly-incidence}
+#| tbl-cap: "Weekly confirmed outbreaks by species and cumulative total."
+
+cases_epiweek <- cases_full |>
+  mutate(
+    epidemic_day = as.numeric(date_confirmed - min(date_confirmed, na.rm = TRUE)),
+    epi_week = floor(epidemic_day / 7) + 1
+  )
+
+week_dates <- cases_epiweek |>
+  group_by(epi_week) |>
+  summarise(
+    week_start = min(date_confirmed),
+    week_end   = max(date_confirmed),
+    .groups = "drop"
+  )
+
+weekly_species <- cases_epiweek |>
+  count(epi_week, species) |>
+  pivot_wider(names_from = species, values_from = n, values_fill = 0)
+
+weekly_total <- cases_epiweek |>
+  count(epi_week, name = "total") |>
+  mutate(cumulative = cumsum(total))
+
+week_dates |>
+  left_join(weekly_species, by = "epi_week") |>
+  left_join(weekly_total, by = "epi_week") |>
+  mutate(
+    Period = paste(format(week_start, "%b %d"), "–",
+                   format(week_end, "%b %d"))
+  ) |>
+  select(
+    Week = epi_week,
+    Period,
+    Duck = duck,
+    Chicken = chicken,
+    `Week Total` = total,
+    Cumulative = cumulative
+  ) |>
+  kable(align = "clcccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+# Spatial Distribution
+
+## Outbreak map
+
+```{r fig-map-outbreaks, fig.cap="Spatial distribution of confirmed HPAI outbreaks (coloured by species) relative to the total farm population (grey points). County boundaries shown.", fig.width=10, fig.height=9}
+ggplot() +
+  geom_sf(data = counties, fill = "grey95", colour = "grey40") +
+  geom_sf(data = farms_sf, colour = "grey80", size = 0.3, alpha = 0.5) +
+  geom_sf(
+    data = cases_sf,
+    aes(colour = species, shape = species),
+    size = 2.5, alpha = 0.8
+  ) +
+  scale_colour_manual(
+    values = c("duck" = "#1f77b4", "chicken" = "#ff7f0e"),
+    labels = str_to_title, name = "Species"
+  ) +
+  scale_shape_manual(
+    values = c("duck" = 16, "chicken" = 17),
+    labels = str_to_title, name = "Species"
+  ) +
+  labs(title = "Spatial Distribution of HPAI Outbreaks") +
+  theme_void(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+## Outbreaks by county
+
+```{r tbl-county}
+#| tbl-cap: "Outbreaks by county, with total farm population and attack rate."
+
+county_pop <- population |>
+  count(county, name = "farms")
+
+county_outbreaks <- cases_full |>
+  count(county, name = "outbreaks")
+
+county_pop |>
+  left_join(county_outbreaks, by = "county") |>
+  mutate(
+    outbreaks = replace_na(outbreaks, 0),
+    attack_rate_pct = outbreaks / farms * 100
+  ) |>
+  filter(outbreaks > 0) |>
+  arrange(desc(outbreaks)) |>
+  select(
+    County = county,
+    `Total Farms` = farms,
+    Outbreaks = outbreaks,
+    `Attack Rate (%)` = attack_rate_pct
+  ) |>
+  kable(digits = 1, align = "lccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Temporal-spatial progression
+
+```{r fig-map-temporal, fig.cap="Spatial progression of outbreaks over time. Point colour indicates timing (darker = earlier). County boundaries shown for reference.", fig.width=10, fig.height=9}
+cases_sf <- cases_sf |>
+  mutate(epidemic_day = as.numeric(date_confirmed - min(date_confirmed, na.rm = TRUE)))
+
+ggplot() +
+  geom_sf(data = counties, fill = "grey95", colour = "grey40") +
+  geom_sf(data = farms_sf, colour = "grey90", size = 0.2, alpha = 0.4) +
+  geom_sf(
+    data = cases_sf |> arrange(epidemic_day),
+    aes(colour = epidemic_day),
+    size = 2.5, alpha = 0.85
+  ) +
+  scale_colour_viridis_c(
+    name = "Epidemic Day",
+    option = "inferno", direction = -1
+  ) +
+  labs(title = "Temporal-Spatial Progression of HPAI Outbreaks") +
+  theme_void(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+## Production type map
+
+```{r fig-map-production, fig.cap="Spatial distribution of outbreaks coloured by production type.", fig.width=10, fig.height=9}
+ggplot() +
+  geom_sf(data = counties, fill = "grey95", colour = "grey40") +
+  geom_sf(data = farms_sf, colour = "grey90", size = 0.2, alpha = 0.4) +
+  geom_sf(
+    data = cases_sf,
+    aes(colour = production),
+    size = 2.5, alpha = 0.8
+  ) +
+  scale_colour_brewer(
+    palette = "Set1",
+    labels = \(x) str_replace_all(x, "_", " ") |> str_to_title(),
+    name = "Production Type"
+  ) +
+  labs(title = "Outbreaks by Production Type") +
+  theme_void(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+# Movement Network
+
+```{r movement-structure}
+case_ids <- unique(cases$farm_id)
+mov_farm_ids <- unique(c(movements$source_farm, movements$dest_farm))
+
+# Join movement farms with population to identify production types
+mov_source_prod <- population |>
+  filter(farm_id %in% unique(movements$source_farm)) |>
+  distinct(production) |> pull()
+mov_dest_prod <- population |>
+  filter(farm_id %in% unique(movements$dest_farm)) |>
+  distinct(production) |> pull()
+
+n_mov <- nrow(movements)
+n_source <- n_distinct(movements$source_farm)
+n_dest <- n_distinct(movements$dest_farm)
+n_mov_farms <- length(mov_farm_ids)
+mov_dates <- range(movements$date)
+
+# Case farms in network
+case_in_source <- sum(case_ids %in% unique(movements$source_farm))
+case_in_dest <- sum(case_ids %in% unique(movements$dest_farm))
+case_in_network <- sum(case_ids %in% mov_farm_ids)
+```
+
+The movement dataset records **`r format(n_mov, big.mark = ",")` animal movements** between `r format(n_mov_farms, big.mark = ",")` farms from `r format(mov_dates[1], "%B %d, %Y")` to `r format(mov_dates[2], "%B %d, %Y")`. The network has a directed structure: **`r format(n_source, big.mark = ",")` source farms** (all `r paste(mov_source_prod, collapse = ", ")`) ship to **`r format(n_dest, big.mark = ",")` destination farms** (all `r paste(mov_dest_prod, collapse = ", ")`). This represents a broiler supply chain. Duck farms (conventional and organic) are entirely absent from the movement records.
+
+## Network summary
+
+```{r tbl-movement-summary}
+#| tbl-cap: "Movement network summary statistics."
+
+tibble(
+  Metric = c(
+    "Total movements recorded",
+    "Date range",
+    "Unique source farms (all broiler 1)",
+    "Unique destination farms (all broiler 2)",
+    "Total farms in network",
+    "Case farms in network",
+    "— as source (broiler 1)",
+    "— as destination (broiler 2)"
+  ),
+  Value = c(
+    format(n_mov, big.mark = ","),
+    paste(format(mov_dates, "%b %d, %Y"), collapse = " – "),
+    format(n_source, big.mark = ","),
+    format(n_dest, big.mark = ","),
+    format(n_mov_farms, big.mark = ","),
+    paste0(case_in_network, " of ", length(case_ids)),
+    as.character(case_in_source),
+    as.character(case_in_dest)
+  )
+) |>
+  kable(align = "lr") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Movement volume over time
+
+```{r fig-movement-volume, fig.cap="Weekly movement volume. The vertical dashed line marks the date of the first confirmed outbreak (December 22, 2025). Movement volumes decline during the outbreak period.", fig.width=10, fig.height=5}
+first_case_date <- min(cases$date_confirmed, na.rm = TRUE)
+
+movements |>
+  mutate(week = floor_date(date, "week")) |>
+  count(week, name = "movements") |>
+  ggplot(aes(x = week, y = movements)) +
+  geom_col(fill = "#1f77b4", alpha = 0.7) +
+  geom_vline(xintercept = first_case_date, linetype = "dashed",
+             colour = "red", linewidth = 0.8) +
+  annotate("text", x = first_case_date + 1, y = Inf, label = "First confirmation",
+           hjust = 0, vjust = 1.5, colour = "red", size = 3.5) +
+  scale_x_date(date_breaks = "2 weeks", date_labels = "%b %d") +
+  labs(
+    title = "Weekly Animal Movements Between Farms",
+    x = "Week", y = "Number of Movements"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Case farm involvement
+
+```{r tbl-case-movements}
+#| tbl-cap: "Movements involving confirmed case farms: timing relative to confirmation and direct case-to-case links."
+
+# Movements from case farms
+from_cases <- movements |>
+  filter(source_farm %in% case_ids) |>
+  left_join(cases |> select(farm_id, date_confirmed),
+            by = c("source_farm" = "farm_id")) |>
+  mutate(timing = case_when(
+    date < date_confirmed ~ "Before confirmation",
+    date == date_confirmed ~ "On day of confirmation",
+    TRUE ~ "After confirmation"
+  ))
+
+# Movements to case farms
+to_cases <- movements |>
+  filter(dest_farm %in% case_ids) |>
+  left_join(cases |> select(farm_id, date_confirmed),
+            by = c("dest_farm" = "farm_id")) |>
+  mutate(timing = case_when(
+    date < date_confirmed ~ "Before confirmation",
+    date == date_confirmed ~ "On day of confirmation",
+    TRUE ~ "After confirmation"
+  ))
+
+# Case-to-case
+case_to_case <- movements |>
+  filter(source_farm %in% case_ids & dest_farm %in% case_ids)
+
+tibble(
+  Metric = c(
+    "Movements FROM case farms",
+    "— before confirmation",
+    "— on day of confirmation",
+    "— after confirmation",
+    "Movements TO case farms",
+    "— before confirmation",
+    "Direct case → case movements"
+  ),
+  Count = c(
+    nrow(from_cases),
+    sum(from_cases$timing == "Before confirmation"),
+    sum(from_cases$timing == "On day of confirmation"),
+    sum(from_cases$timing == "After confirmation"),
+    nrow(to_cases),
+    sum(to_cases$timing == "Before confirmation"),
+    nrow(case_to_case)
+  )
+) |>
+  kable(align = "lr") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Network visualisation
+
+```{r fig-network, fig.cap="Movement network graph. Nodes represent farms; edges represent recorded movements (aggregated). Node colour indicates case status; node shape indicates production type (broiler 1 = circle, broiler 2 = triangle). Only the connected component containing at least one case farm is shown to reduce visual clutter.", fig.width=12, fig.height=10}
+# Aggregate edges: one edge per source-dest pair
+edges_agg <- movements |>
+  count(source_farm, dest_farm, wt = volume, name = "total_volume")
+
+# Build igraph from edge list (vertices created automatically from edge names)
+g <- igraph::graph_from_data_frame(
+  edges_agg |> select(source_farm, dest_farm, total_volume),
+  directed = TRUE
+) |>
+  as_tbl_graph()
+
+# Add node attributes from population data
+node_data <- g |>
+  activate(nodes) |>
+  as_tibble() |>
+  mutate(farm_id = as.integer(name)) |>
+  left_join(population |> select(farm_id, production), by = "farm_id") |>
+  mutate(
+    is_case = farm_id %in% case_ids,
+    status = if_else(is_case, "Confirmed case", "No case")
+  )
+
+g <- g |>
+  activate(nodes) |>
+  mutate(
+    farm_id = node_data$farm_id,
+    production = node_data$production,
+    is_case = node_data$is_case,
+    status = node_data$status
+  )
+
+# Filter to components containing at least one case farm
+g <- g |>
+  activate(nodes) |>
+  mutate(component = group_components()) |>
+  filter(component %in% component[is_case]) |>
+  select(-component)
+
+ggraph(g, layout = "stress") +
+  geom_edge_link(alpha = 0.08, colour = "grey50",
+                 arrow = arrow(length = unit(1.5, "mm"), type = "closed"),
+                 end_cap = circle(1.5, "mm")) +
+  geom_node_point(
+    aes(colour = status, shape = production),
+    size = 2.5, alpha = 0.8
+  ) +
+  scale_colour_manual(
+    values = c("Confirmed case" = "#d62728", "No case" = "grey70"),
+    name = "Case Status"
+  ) +
+  scale_shape_manual(
+    values = c("broiler_1" = 16, "broiler_2" = 17),
+    labels = c("Broiler 1 (source)", "Broiler 2 (destination)"),
+    name = "Production Type"
+  ) +
+  labs(title = "Farm Movement Network (components containing case farms)") +
+  theme_void(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+# Culling Response
+
+```{r cull-data}
+# Confirmed-case culling metrics
+case_cull <- cases_full |>
+  mutate(
+    time_to_cull = as.numeric(cull_start - date_confirmed),
+    cull_duration = as.numeric(cull_end - cull_start)
+  )
+
+n_prev <- nrow(prev_culls)
+
+# Join preventive culls with population
+prev_culls_full <- prev_culls |>
+  left_join(population, by = "farm_id")
+```
+
+## Confirmed case culling
+
+```{r tbl-cull-status}
+#| tbl-cap: "Culling status for confirmed HPAI outbreaks and preventive culls."
+
+case_status <- case_cull |>
+  count(cull_status) |>
+  mutate(type = "Confirmed outbreaks")
+
+prev_status <- prev_culls |>
+  count(cull_status) |>
+  mutate(type = "Preventive culls")
+
+bind_rows(case_status, prev_status) |>
+  pivot_wider(names_from = cull_status, values_from = n, values_fill = 0) |>
+  mutate(Total = completed + `in progress` + planned) |>
+  rename(
+    Type = type,
+    Completed = completed,
+    `In Progress` = `in progress`,
+    Planned = planned
+  ) |>
+  kable(align = "lcccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+```{r fig-cull-timeline, fig.cap="Timeline of culling activity for confirmed outbreaks. Each bar represents one farm, ordered by confirmation date. Colour indicates cull status. The gap between confirmation (left edge) and cull start shows the response delay.", fig.width=10, fig.height=8}
+case_cull |>
+  arrange(date_confirmed, cull_start) |>
+  mutate(farm_order = row_number()) |>
+  ggplot() +
+  geom_segment(
+    aes(x = date_confirmed, xend = cull_start,
+        y = farm_order, yend = farm_order),
+    colour = "grey70", linewidth = 0.3
+  ) +
+  geom_segment(
+    aes(x = cull_start,
+        xend = if_else(is.na(cull_end), max(cull_start, na.rm = TRUE), cull_end),
+        y = farm_order, yend = farm_order,
+        colour = cull_status),
+    linewidth = 1.5
+  ) +
+  geom_point(aes(x = date_confirmed, y = farm_order),
+             size = 0.8, colour = "black") +
+  scale_colour_manual(
+    values = c("completed" = "#2ca02c", "in progress" = "#ff7f0e",
+               "planned" = "#d62728"),
+    labels = str_to_title,
+    name = "Cull Status"
+  ) +
+  scale_x_date(date_breaks = "3 days", date_labels = "%b %d") +
+  labs(
+    title = "Culling Timeline for Confirmed Outbreaks",
+    subtitle = "Black dots = confirmation date; grey line = wait time; coloured bar = culling period",
+    x = "Date", y = "Farm (ordered by confirmation date)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+
+## Time from confirmation to culling
+
+```{r tbl-cull-delay}
+#| tbl-cap: "Time from confirmation to cull start (days) for confirmed outbreaks with culling data."
+
+case_cull |>
+  filter(!is.na(time_to_cull)) |>
+  summarise(
+    N = n(),
+    Mean = mean(time_to_cull),
+    Median = median(time_to_cull),
+    Min = min(time_to_cull),
+    Max = max(time_to_cull)
+  ) |>
+  kable(digits = 1, align = "ccccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+## Preventive culling
+
+A total of **`r n_prev` preventive culls** have been ordered on farms not (yet) confirmed positive. These target farms identified through proximity or epidemiological links to confirmed cases.
+
+```{r tbl-prev-cull-species}
+#| tbl-cap: "Preventive culls by species, production type, and status."
+
+prev_culls_full |>
+  count(species, production, cull_status) |>
+  mutate(
+    species = str_to_title(species),
+    production = str_replace_all(production, "_", " ") |> str_to_title(),
+    cull_status = str_to_title(cull_status)
+  ) |>
+  pivot_wider(names_from = cull_status, values_from = n, values_fill = 0) |>
+  mutate(Total = rowSums(across(where(is.numeric)))) |>
+  arrange(desc(Total)) |>
+  rename(Species = species, `Production Type` = production) |>
+  kable(align = "llcccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+---
+
+# Questions arising from the data
+
+The descriptive patterns above raise several questions for further investigation:
+
+- **Is the epidemic accelerating, stabilising, or decelerating?** The weekly incidence table and epidemic curve provide a basis for this assessment. Growth rate estimation (e.g., doubling time, effective reproduction number) would quantify the trajectory more precisely — see the companion temporal analysis for these estimates.
+
+- **Why are chicken farms, particularly broiler type 2, disproportionately affected?** Attack rates differ substantially across species and production types. Possible explanations include spatial confounding (chicken farms may be concentrated near the outbreak focus), differences in biosecurity practices by production type, differences in susceptibility or clinical presentation affecting detection probability, or transmission via production-specific supply chains. Disentangling these requires spatial risk factor analysis.
+
+- **Does the broiler supply chain explain the concentration of cases in broiler 2 farms?** The movement network is a directed broiler 1 → broiler 2 supply chain. Broiler 2 farms have the highest attack rate and receive animals from broiler 1 farms, some of which are also confirmed cases. However, only 3 direct case-to-case movements were recorded. Further analysis could quantify whether farms with more incoming movements, or movements from case farms specifically, had higher infection risk — controlling for spatial proximity.
+
+- **Is passive surveillance sufficient?** The overwhelming majority of detections are through passive surveillance (clinical suspicion). The low contribution of preshipment testing and contact tracing raises the question of whether subclinical or early-stage infections are being missed, and whether the true extent of the epidemic is larger than confirmed cases suggest.
+
+- **Are culling operations keeping pace with new detections?** The cull status data show a growing backlog of planned and in-progress culls. Whether delays in depopulation are contributing to onward transmission is a question for operational and transmission modelling.
+
+- **Where is the epidemic likely to spread next?** The temporal-spatial progression suggests outward expansion from an initial focus. Identifying the leading edge and farms at highest risk of future infection would inform targeted surveillance and preventive measures.
+
+# Limitations and analytical choices
+
+## Data not included in this report
+
+- **Mortality ledger data**: Individual farm mortality records (PDF format) are available for a subset of farms. These could provide insight into within-farm dynamics and time from infection to detection, but were not incorporated here.
+
+- **Farm activity data**: Production activity logs (`activity.csv`) could contextualise which farms were actively stocked at the time of the outbreak, but were not used in this descriptive analysis.
+
+- **High-risk zone and wetland layers**: Geospatial data on the designated high-risk zone (`hrz_32626.geojson`) and wetland/water body coverage (`clc_32626.geojson`) are available and could add context to the spatial maps, but were omitted to keep the maps focused on outbreak distribution.
+
+## Analytical limitations
+
+- **Attack rates are crude**: The attack rates presented use total registered farms as the denominator. Not all farms may have been actively stocked during the outbreak period, so true attack rates among at-risk farms may differ.
+
+- **No adjustment for spatial confounding**: Differences in attack rates across species and production types may be partly or wholly explained by the geographic concentration of the outbreak rather than true biological differences.
+
+- **Epidemic curve right-truncation**: The most recent days of the epidemic curve are likely incomplete due to delays between suspicion and confirmation. The apparent case count in the final days may underestimate the true incidence.
+
+- **Movement network is descriptive only**: The movement section presents network structure and case involvement but does not model whether movements are associated with infection risk. Temporal precedence (movements before confirmation) does not establish causation. The network also only covers chicken broiler farms, so transmission pathways for duck and layer farms remain unobserved.
+
+- **No formal statistical testing**: This report is purely descriptive. Differences in attack rates have not been tested for statistical significance, and no regression or spatial modelling has been applied.

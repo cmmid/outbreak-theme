@@ -1,0 +1,14 @@
+---
+title: "CMMID Outbreak Response"
+---
+
+Shared resources to support outbreak response theme activity.
+
+## 2026 HPAI Modelling Challenge
+
+Analysis reports for the simulated HPAI outbreak scenario ([WILIMAN-ID modelling challenge](https://www.wiliman-id.eu/modelling-challenge/)).
+
+### Phase 1
+
+- [General Epidemic Description](hpai-challenge/analysis/phase-1-q-1.qmd) — outbreak distribution by species and production type, epidemic timeline, spatial maps, movement network, and culling response
+- [Temporal Analysis](hpai-challenge/analysis/temporal.qmd) — epidemic curves, growth rate estimation, and detection delay analysis

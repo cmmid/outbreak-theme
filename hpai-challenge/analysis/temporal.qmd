@@ -1,0 +1,565 @@
+---
+title: "HPAI Outbreak Temporal Analysis"
+subtitle: "Phase 1: December 20, 2025 - January 13, 2026"
+date: today
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Introduction
+
+This report presents a temporal analysis of the ongoing HPAI (Highly Pathogenic Avian Influenza) outbreak affecting poultry farms in the region. The analysis covers the period from December 20, 2025 through January 13, 2026, examining epidemic curves, detection patterns, and response timelines.
+
+# Setup and Data Loading
+
+```{r setup, include=FALSE}
+# Load required libraries
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(ggplot2)
+
+# Set theme for plots
+theme_set(theme_minimal(base_size = 12))
+here::i_am("hpai-challenge/analysis/temporal.qmd")
+knitr::opts_knit$set(root.dir = here::here())
+```
+
+```{r load-data}
+# Load cases data
+cases <- read_csv("hpai-challenge/data/phase-1/cases.csv", show_col_types = FALSE) %>%
+  mutate(
+    date_suspicious = ymd(date_suspicious),
+    date_confirmed = ymd(date_confirmed),
+    cull_start = ymd(cull_start),
+    cull_end = ymd(cull_end)
+  )
+
+# Load population data for farm attributes
+population <- read_csv("hpai-challenge/data/canonical/population.csv", show_col_types = FALSE)
+
+# Join cases with farm attributes
+cases_full <- cases %>%
+  left_join(population, by = "farm_id")
+```
+
+```{r calculate-derived-variables}
+# Calculate derived time variables
+cases_analysis <- cases_full %>%
+  mutate(
+    # Detection delay: time from suspicion to confirmation
+    detection_delay = as.numeric(date_confirmed - date_suspicious),
+
+    # Time to cull: time from confirmation to culling start
+    time_to_cull = as.numeric(cull_start - date_confirmed),
+
+    # Cull duration: time to complete culling
+    cull_duration = as.numeric(cull_end - cull_start),
+
+    # Epidemic day: days since first case
+    epidemic_day = as.numeric(date_confirmed - min(date_confirmed, na.rm = TRUE)),
+
+    # Epidemic week
+    epi_week = floor(epidemic_day / 7) + 1
+  )
+
+# Data quality summary
+n_cases <- nrow(cases_analysis)
+n_missing_suspicious <- sum(is.na(cases_analysis$date_suspicious))
+date_range <- range(cases_analysis$date_confirmed, na.rm = TRUE)
+```
+
+## Data Summary
+
+This analysis includes **`r n_cases` confirmed HPAI cases** spanning from **`r format(date_range[1], "%B %d, %Y")`** to **`r format(date_range[2], "%B %d, %Y")`** (a period of `r as.numeric(date_range[2] - date_range[1])` days).
+
+**Data completeness:** `r n_missing_suspicious` case(s) are missing the date of suspicion, which affects detection delay calculations for those cases. These cases were detected through methods that may not have a clear "suspicion" date (likely preshipment testing or contact tracing).
+
+# Epidemic Curves
+
+## Primary Epidemic Curve
+
+```{r daily-counts}
+# Calculate daily case counts
+daily_suspicious <- cases_analysis %>%
+  filter(!is.na(date_suspicious)) %>%
+  count(date_suspicious, name = "cases") %>%
+  rename(date = date_suspicious) %>%
+  mutate(type = "Date Suspicious")
+
+daily_confirmed <- cases_analysis %>%
+  count(date_confirmed, name = "cases") %>%
+  rename(date = date_confirmed) %>%
+  mutate(type = "Date Confirmed")
+
+# Combine for plotting
+daily_combined <- bind_rows(daily_suspicious, daily_confirmed)
+
+# Calculate 7-day moving average
+daily_confirmed_ma <- daily_confirmed %>%
+  arrange(date) %>%
+  mutate(
+    ma_7day = zoo::rollmean(cases, k = 7, fill = NA, align = "right")
+  )
+```
+
+```{r fig-epidemic-curve-daily, fig.cap="Daily epidemic curve showing HPAI cases by date of suspicion and date of confirmation. The 7-day moving average (red line) smooths daily variation to show the underlying trend.", fig.width=10, fig.height=6}
+# Create epidemic curve
+ggplot() +
+  # Bars for daily counts
+  geom_col(
+    data = daily_combined,
+    aes(x = date, y = cases, fill = type),
+    position = position_dodge(width = 0.8),
+    alpha = 0.7
+  ) +
+  # Moving average line
+  geom_line(
+    data = daily_confirmed_ma,
+    aes(x = date, y = ma_7day),
+    color = "#d62728",
+    linewidth = 1
+  ) +
+  scale_fill_manual(
+    values = c("Date Suspicious" = "#1f77b4", "Date Confirmed" = "#ff7f0e"),
+    name = "Event Type"
+  ) +
+  scale_x_date(
+    date_breaks = "3 days",
+    date_labels = "%b %d",
+    expand = expansion(mult = 0.02)
+  ) +
+  labs(
+    title = "HPAI Outbreak Epidemic Curve",
+    subtitle = "Daily case counts by date of suspicion and confirmation",
+    x = "Date",
+    y = "Number of Cases"
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+The epidemic curve shows **exponential growth** in the early phase of the outbreak (late December 2025), with cases detected through both passive surveillance (following clinical suspicion) and confirmation. The peak detection period occurred around **`r format(daily_confirmed %>% slice_max(cases, n = 1) %>% pull(date), "%B %d")`** with **`r max(daily_confirmed$cases)` cases confirmed** in a single day.
+
+The 7-day moving average indicates sustained transmission throughout the observation period, with the outbreak showing signs of **`r ifelse(tail(daily_confirmed_ma$ma_7day, 1) > head(na.omit(daily_confirmed_ma$ma_7day), 1), "continued acceleration", "potential stabilization")` by mid-January 2026**.
+
+## Weekly Epidemic Curve
+
+```{r weekly-counts}
+# Calculate weekly case counts by detection method
+weekly_cases <- cases_analysis %>%
+  count(epi_week, detection_method) %>%
+  mutate(
+    detection_method = factor(
+      detection_method,
+      levels = c("passive", "preshipment", "contact_tracing"),
+      labels = c("Passive", "Preshipment", "Contact Tracing")
+    )
+  )
+
+# Calculate cumulative cases by week
+cumulative_weekly <- cases_analysis %>%
+  count(epi_week) %>%
+  mutate(cumulative = cumsum(n))
+
+# Get week start dates for labeling
+week_dates <- cases_analysis %>%
+  group_by(epi_week) %>%
+  summarize(week_start = min(date_confirmed)) %>%
+  left_join(cumulative_weekly, by = "epi_week")
+```
+
+```{r fig-epidemic-curve-weekly, fig.cap="Weekly epidemic curve showing HPAI cases by detection method. Stacked bars show the composition of detection methods, while the line shows cumulative case count. Week labels indicate the Monday start date of each epidemiological week.", fig.width=10, fig.height=6}
+ggplot() +
+  # Stacked bars by detection method
+  geom_col(
+    data = weekly_cases,
+    aes(x = epi_week, y = n, fill = detection_method),
+    alpha = 0.8
+  ) +
+  # Cumulative cases line
+  geom_line(
+    data = cumulative_weekly,
+    aes(x = epi_week, y = cumulative),
+    color = "black",
+    linewidth = 1.2
+  ) +
+  geom_point(
+    data = cumulative_weekly,
+    aes(x = epi_week, y = cumulative),
+    color = "black",
+    size = 3
+  ) +
+  scale_fill_brewer(
+    palette = "Set2",
+    name = "Detection Method"
+  ) +
+  scale_x_continuous(
+    breaks = week_dates$epi_week,
+    labels = format(week_dates$week_start, "%b %d")
+  ) +
+  scale_y_continuous(
+    name = "Weekly Cases",
+    sec.axis = sec_axis(~., name = "Cumulative Cases")
+  ) +
+  labs(
+    title = "Weekly HPAI Case Distribution by Detection Method",
+    subtitle = "Stacked bars show weekly cases; line shows cumulative total",
+    x = "Epidemiological Week (Start Date)"
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+```{r tbl-weekly-summary}
+#| tbl-cap: "Weekly case summary showing progression of the outbreak and detection method composition"
+
+week_dates %>%
+  left_join(
+    weekly_cases %>%
+      group_by(epi_week) %>%
+      summarize(weekly_total = sum(n)),
+    by = "epi_week"
+  ) %>%
+  mutate(
+    week_label = paste0("Week ", epi_week),
+    week_start = format(week_start, "%b %d"),
+    growth_rate = (weekly_total / lag(weekly_total) - 1) * 100
+  ) %>%
+  select(
+    Week = week_label,
+    `Start Date` = week_start,
+    `Weekly Cases` = weekly_total,
+    `Cumulative` = cumulative,
+    `Growth Rate (%)` = growth_rate
+  ) %>%
+  kable(digits = 1, align = "lcccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+The weekly analysis reveals:
+
+- **Week 1-2** (Dec 20-Jan 2): Initial exponential growth phase with `r weekly_cases %>% filter(epi_week <= 2) %>% pull(n) %>% sum()` cases
+- **Week 3** (Jan 3-9): Peak detection period with sustained high case counts
+- **Week 4** (Jan 10-13): `r ifelse(nrow(filter(weekly_cases, epi_week == 4)) > 0, "Continued detection at elevated levels (incomplete week)", "Data pending")`
+
+## Growth Rate Analysis
+
+```{r growth-metrics}
+# Focus on early outbreak period (first 14 days)
+early_outbreak <- cases_analysis %>%
+  filter(epidemic_day <= 14) %>%
+  count(epidemic_day) %>%
+  arrange(epidemic_day)
+
+# Fit exponential model: log(cases) ~ day
+if (nrow(early_outbreak) >= 5) {
+  # Create cumulative cases for exponential fit
+  early_cumulative <- early_outbreak %>%
+    mutate(cumulative = cumsum(n))
+
+  exp_model <- lm(log(cumulative) ~ epidemic_day, data = early_cumulative)
+  growth_rate <- coef(exp_model)[2]
+  doubling_time <- log(2) / growth_rate
+
+  # Calculate R0 estimate (simple approximation)
+  # Using generation time of 5-7 days for HPAI
+  generation_time <- 6
+  r0_estimate <- exp(growth_rate * generation_time)
+} else {
+  growth_rate <- NA
+  doubling_time <- NA
+  r0_estimate <- NA
+}
+```
+
+```{r tbl-growth-metrics}
+#| tbl-cap: "Outbreak growth metrics calculated from the early exponential phase (first 14 days)"
+
+tibble(
+  Metric = c(
+    "Daily growth rate (r)",
+    "Doubling time (days)",
+    "Estimated R₀",
+    "Generation time assumed (days)"
+  ),
+  Value = c(
+    ifelse(!is.na(growth_rate), sprintf("%.3f", growth_rate), "Insufficient data"),
+    ifelse(!is.na(doubling_time), sprintf("%.1f", doubling_time), "Insufficient data"),
+    ifelse(!is.na(r0_estimate), sprintf("%.2f", r0_estimate), "Insufficient data"),
+    "6"
+  ),
+  Interpretation = c(
+    ifelse(!is.na(growth_rate), sprintf("%.1f%% daily increase", growth_rate * 100), "—"),
+    ifelse(!is.na(doubling_time), "Days to double case count", "—"),
+    ifelse(!is.na(r0_estimate), "Avg. secondary cases per case", "—"),
+    "Typical HPAI transmission"
+  )
+) %>%
+  kable(align = "llc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+```{r fig-exponential-growth, fig.cap="Log-scale plot of cumulative cases during the early outbreak period showing exponential growth pattern. The fitted line represents the exponential growth model used to calculate doubling time.", fig.width=8, fig.height=5, eval=!is.na(growth_rate)}
+if (!is.na(growth_rate)) {
+  # Plot with exponential fit
+  early_cumulative %>%
+    mutate(fitted = exp(predict(exp_model))) %>%
+    ggplot(aes(x = epidemic_day)) +
+    geom_point(aes(y = cumulative), size = 3, color = "#1f77b4") +
+    geom_line(aes(y = fitted), color = "#d62728", linewidth = 1, linetype = "dashed") +
+    scale_y_log10() +
+    labs(
+      title = "Early Outbreak Growth Pattern (Log Scale)",
+      subtitle = sprintf("Doubling time: %.1f days | Growth rate: %.1f%% per day",
+                        doubling_time, growth_rate * 100),
+      x = "Days Since First Case",
+      y = "Cumulative Cases (log scale)"
+    ) +
+    annotation_logticks(sides = "l")
+}
+```
+
+The early outbreak phase demonstrates **`r ifelse(!is.na(doubling_time) && doubling_time < 3, "rapid", ifelse(!is.na(doubling_time) && doubling_time < 5, "moderate", "variable"))` exponential growth** with a doubling time of approximately **`r ifelse(!is.na(doubling_time), sprintf("%.1f days", doubling_time), "not calculable")`**. This growth rate is `r ifelse(!is.na(r0_estimate) && r0_estimate > 2, "consistent with sustained transmission", "indicative of outbreak conditions")` and suggests that control measures were needed to interrupt transmission chains.
+
+# Detection Delays
+
+## Time from Suspicion to Confirmation
+
+```{r detection-delay-summary}
+# Calculate summary statistics for detection delays
+delay_stats <- cases_analysis %>%
+  filter(!is.na(detection_delay)) %>%
+  summarize(
+    n = n(),
+    mean = mean(detection_delay),
+    median = median(detection_delay),
+    sd = sd(detection_delay),
+    min = min(detection_delay),
+    max = max(detection_delay),
+    q25 = quantile(detection_delay, 0.25),
+    q75 = quantile(detection_delay, 0.75),
+    iqr = IQR(detection_delay)
+  )
+```
+
+Among the **`r delay_stats$n` cases** with complete date information, the time from suspicion to laboratory confirmation averaged **`r sprintf("%.1f days", delay_stats$mean)`** (median: **`r sprintf("%.1f days", delay_stats$median)`**, IQR: `r sprintf("%.1f-%.1f days", delay_stats$q25, delay_stats$q75)`).
+
+```{r tbl-detection-delay}
+#| tbl-cap: "Summary statistics for detection delay (days from suspicion to confirmation)"
+
+delay_stats %>%
+  select(
+    `N Cases` = n,
+    `Mean` = mean,
+    `Median` = median,
+    `SD` = sd,
+    `Min` = min,
+    `Q1` = q25,
+    `Q3` = q75,
+    `Max` = max
+  ) %>%
+  mutate(across(where(is.numeric), ~sprintf("%.1f", .))) %>%
+  pivot_longer(everything(), names_to = "Statistic", values_to = "Days") %>%
+  kable(align = "lr") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+```{r fig-detection-delay-distribution, fig.cap="Distribution of detection delays showing time from clinical suspicion to laboratory confirmation. The red dashed line indicates the median delay.", fig.width=10, fig.height=5}
+# Create combined histogram and density plot
+p1 <- cases_analysis %>%
+  filter(!is.na(detection_delay)) %>%
+  ggplot(aes(x = detection_delay)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    binwidth = 1,
+    fill = "#1f77b4",
+    alpha = 0.7,
+    color = "white"
+  ) +
+  geom_density(color = "#d62728", linewidth = 1) +
+  geom_vline(
+    xintercept = delay_stats$median,
+    color = "#d62728",
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  labs(
+    title = "Detection Delay Distribution",
+    x = "Days from Suspicion to Confirmation",
+    y = "Density"
+  )
+
+# Box plot by detection method
+p2 <- cases_analysis %>%
+  filter(!is.na(detection_delay)) %>%
+  mutate(
+    detection_method = factor(
+      detection_method,
+      levels = c("passive", "preshipment", "contact_tracing"),
+      labels = c("Passive", "Preshipment", "Contact Tracing")
+    )
+  ) %>%
+  ggplot(aes(x = detection_method, y = detection_delay, fill = detection_method)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 1, outlier.size = 2) +
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
+  scale_fill_brewer(palette = "Set2", guide = "none") +
+  labs(
+    title = "Detection Delay by Method",
+    x = "Detection Method",
+    y = "Days"
+  ) +
+  coord_flip()
+
+# Combine plots
+p1 + p2 + plot_layout(widths = c(1.5, 1))
+```
+
+Detection delays are generally **`r ifelse(delay_stats$median <= 3, "short", ifelse(delay_stats$median <= 5, "moderate", "concerning"))`**, reflecting `r ifelse(delay_stats$median <= 3, "efficient laboratory testing and reporting systems", "typical turnaround times for HPAI diagnostics")`. The distribution shows:
+
+- **Minimum delay:** `r delay_stats$min` day(s) - indicating same-day or next-day confirmation possible
+- **Maximum delay:** `r delay_stats$max` days - may represent cases with initial negative results or testing delays
+- **Most cases** (50%) confirmed within `r sprintf("%.1f", delay_stats$q25)`-`r sprintf("%.1f", delay_stats$q75)` days of suspicion
+
+## Detection Delay Over Time
+
+```{r fig-detection-delay-trend, fig.cap="Temporal trend in detection delays throughout the outbreak period. The smoothed line (loess) shows whether detection efficiency improved or declined over time. Points are colored by detection method.", fig.width=10, fig.height=6}
+cases_analysis %>%
+  filter(!is.na(detection_delay)) %>%
+  mutate(
+    detection_method = factor(
+      detection_method,
+      levels = c("passive", "preshipment", "contact_tracing"),
+      labels = c("Passive", "Preshipment", "Contact Tracing")
+    )
+  ) %>%
+  ggplot(aes(x = date_confirmed, y = detection_delay)) +
+  geom_point(
+    aes(color = detection_method),
+    size = 3,
+    alpha = 0.6
+  ) +
+  geom_smooth(
+    method = "loess",
+    se = TRUE,
+    color = "black",
+    fill = "grey70",
+    linewidth = 1
+  ) +
+  scale_color_brewer(
+    palette = "Set2",
+    name = "Detection Method"
+  ) +
+  scale_x_date(
+    date_breaks = "3 days",
+    date_labels = "%b %d"
+  ) +
+  labs(
+    title = "Detection Delays Over Time",
+    subtitle = "Time from suspicion to confirmation throughout the outbreak",
+    x = "Date Confirmed",
+    y = "Detection Delay (Days)"
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+The temporal trend analysis reveals whether detection efficiency changed as the outbreak progressed. `r ifelse(nrow(filter(cases_analysis, !is.na(detection_delay))) > 10, "The smoothed trend line indicates", "Limited data suggests")` that detection delays `r ifelse(nrow(filter(cases_analysis, !is.na(detection_delay))) > 10, ifelse(delay_stats$mean < 3.5, "remained consistently short", "were relatively stable"), "varied throughout the period")`, suggesting `r ifelse(delay_stats$mean < 3.5, "laboratory capacity kept pace with case load", "consistent diagnostic protocols")`.
+
+## Detection Delay by Method
+
+```{r delay-by-method}
+# Calculate stratified statistics
+delay_by_method <- cases_analysis %>%
+  filter(!is.na(detection_delay)) %>%
+  group_by(detection_method) %>%
+  summarize(
+    n = n(),
+    mean = mean(detection_delay),
+    median = median(detection_delay),
+    sd = sd(detection_delay),
+    min = min(detection_delay),
+    max = max(detection_delay),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    detection_method = factor(
+      detection_method,
+      levels = c("passive", "preshipment", "contact_tracing"),
+      labels = c("Passive", "Preshipment", "Contact Tracing")
+    )
+  ) %>%
+  arrange(detection_method)
+
+# Statistical test for differences
+if (n_distinct(cases_analysis$detection_method) > 1) {
+  delay_test <- cases_analysis %>%
+    filter(!is.na(detection_delay)) %>%
+    kruskal.test(detection_delay ~ detection_method, data = .)
+
+  test_p <- delay_test$p.value
+} else {
+  test_p <- NA
+}
+```
+
+```{r tbl-delay-by-method}
+#| tbl-cap: "Detection delays stratified by surveillance method. Sample sizes and summary statistics are shown for each detection pathway."
+
+delay_by_method %>%
+  select(
+    `Detection Method` = detection_method,
+    `N` = n,
+    `Mean (days)` = mean,
+    `Median (days)` = median,
+    `SD` = sd,
+    `Range` = min
+  ) %>%
+  mutate(
+    `Range` = sprintf("%d-%d", delay_by_method$min, delay_by_method$max)
+  ) %>%
+  kable(digits = 1, align = "lccccr") %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  footnote(
+    general = sprintf(
+      "Kruskal-Wallis test: %s",
+      ifelse(!is.na(test_p),
+             sprintf("χ² = %.2f, p %s", delay_test$statistic,
+                    ifelse(test_p < 0.001, "< 0.001", sprintf("= %.3f", test_p))),
+             "Not calculated")
+    )
+  )
+```
+
+Comparison across detection methods shows:
+
+- **Passive surveillance** (`r filter(delay_by_method, detection_method == "Passive")$n` cases): Mean delay `r sprintf("%.1f days", filter(delay_by_method, detection_method == "Passive")$mean)` - reflects clinical detection and farmer reporting
+- **Preshipment testing** (`r ifelse(nrow(filter(delay_by_method, detection_method == "Preshipment")) > 0, filter(delay_by_method, detection_method == "Preshipment")$n, 0)` cases): `r ifelse(nrow(filter(delay_by_method, detection_method == "Preshipment")) > 0, sprintf("Mean delay %.1f days", filter(delay_by_method, detection_method == "Preshipment")$mean), "No cases with delay data")` - may detect subclinical infections
+- **Contact tracing** (`r ifelse(nrow(filter(delay_by_method, detection_method == "Contact Tracing")) > 0, filter(delay_by_method, detection_method == "Contact Tracing")$n, 0)` cases): `r ifelse(nrow(filter(delay_by_method, detection_method == "Contact Tracing")) > 0, sprintf("Mean delay %.1f days", filter(delay_by_method, detection_method == "Contact Tracing")$mean), "No cases with delay data or suspicion dates")` - proactive surveillance
+
+`r ifelse(!is.na(test_p) && test_p < 0.05, "Statistical testing indicates significant differences in detection delays across methods, suggesting that certain surveillance pathways enable faster confirmation.", "Detection delays appear similar across methods, indicating consistent laboratory processing regardless of detection pathway.")`
+
+---
+
+# Summary
+
+This temporal analysis of the HPAI outbreak reveals:
+
+1. **Epidemic Pattern:** `r n_cases` cases detected over `r as.numeric(date_range[2] - date_range[1])` days showing `r ifelse(!is.na(doubling_time) && doubling_time < 4, "rapid exponential growth", "sustained transmission")`
+
+2. **Detection Efficiency:** Median confirmation delay of `r sprintf("%.1f days", delay_stats$median)` demonstrates `r ifelse(delay_stats$median <= 3, "efficient", ifelse(delay_stats$median <= 5, "adequate", "functioning"))` laboratory systems
+
+3. **Surveillance Performance:** Detection primarily through `r cases_analysis %>% count(detection_method) %>% slice_max(n) %>% pull(detection_method)` surveillance, with `r ifelse(test_p < 0.05 | is.na(test_p), "varying", "consistent")` delays across methods
+
+**Next steps:** Spatial analysis to identify outbreak clusters and risk factor analysis to determine farm characteristics associated with infection risk.

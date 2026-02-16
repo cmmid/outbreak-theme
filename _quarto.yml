@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "CMMID Outbreak Response"
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "HPAI Phase 1"
+        menu:
+          - text: "General Description"
+            href: hpai-challenge/analysis/phase-1-q-1.qmd
+          - text: "Temporal Analysis"
+            href: hpai-challenge/analysis/temporal.qmd
+
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
