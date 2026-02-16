@@ -1,16 +1,212 @@
 [
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html",
+    "title": "HPAI Outbreak: General Epidemic Description",
     "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
+    "text": "As of January 13, 2026, a total of 103 HPAI-confirmed outbreaks have been reported across 8 counties and 59 districts since the index case on December 22, 2025 (22 days). Both species present in the poultry population (duck, chicken) are affected. Of the 103 confirmed farms, 51 have completed culling, 11 are in progress, and 41 are planned."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#outbreak-counts",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#outbreak-counts",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Outbreak counts",
+    "text": "Outbreak counts\n\n\n\n\nTable 1: Confirmed HPAI outbreaks by species and production type, with attack rate relative to total farm population.\n\n\n\n\n\n\nSpecies\nProduction Type\nTotal Farms\nOutbreaks\nAttack Rate (%)\n\n\n\n\nChicken\nBroiler 1\n1248\n18\n1.4\n\n\nChicken\nBroiler 2\n2746\n56\n2.0\n\n\nChicken\nLayer\n441\n7\n1.6\n\n\nDuck\nConventional\n3691\n11\n0.3\n\n\nDuck\nOrganic\n1034\n11\n1.1\n\n\nChicken\nAll\n4435\n81\n1.8\n\n\nDuck\nAll\n4725\n22\n0.5\n\n\nTotal\nAll\n9160\n103\n1.1"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#capacity-affected",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#capacity-affected",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Capacity affected",
+    "text": "Capacity affected\n\n\n\n\nTable 2: Estimated animal capacity affected by species and production type.\n\n\n\n\n\n\nSpecies\nProduction Type\nOutbreaks\nTotal Capacity\nMean Capacity / Farm\n\n\n\n\nChicken\nBroiler 1\n18\n89,916\n4,995\n\n\nChicken\nBroiler 2\n56\n122,505\n2,188\n\n\nChicken\nLayer\n7\n125,448\n17,921\n\n\nDuck\nConventional\n11\n168,927\n15,357\n\n\nDuck\nOrganic\n11\n9,381\n853\n\n\nTotal\nAll\n103\n516,177\n5,011"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#detection-method",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#detection-method",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Detection method",
+    "text": "Detection method\n\n\n\n\nTable 3: Outbreaks by detection method and species.\n\n\n\n\n\n\nSpecies\nContact Tracing\nPassive\nPreshipment\n\n\n\n\nChicken\n1\n74\n6\n\n\nDuck\n0\n22\n0\n\n\nTotal\n1\n96\n6"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#daily-epidemic-curve",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#daily-epidemic-curve",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Daily epidemic curve",
+    "text": "Daily epidemic curve\n\n\n\n\n\n\n\n\nFigure 1: Daily confirmed HPAI outbreaks (bars) with 7-day rolling average (red line). Bars are coloured by species."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#cumulative-epidemic-curve",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#cumulative-epidemic-curve",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Cumulative epidemic curve",
+    "text": "Cumulative epidemic curve\n\n\n\n\n\n\n\n\nFigure 2: Cumulative confirmed HPAI outbreaks over time, coloured by species."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#incidence-by-epidemiological-week",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#incidence-by-epidemiological-week",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Incidence by epidemiological week",
+    "text": "Incidence by epidemiological week\n\n\n\n\nTable 4: Weekly confirmed outbreaks by species and cumulative total.\n\n\n\n\n\n\nWeek\nPeriod\nDuck\nChicken\nWeek Total\nCumulative\n\n\n\n\n1\nDec 22 – Dec 28\n0\n4\n4\n4\n\n\n2\nDec 29 – Jan 04\n3\n17\n20\n24\n\n\n3\nJan 05 – Jan 11\n12\n36\n48\n72\n\n\n4\nJan 12 – Jan 13\n7\n24\n31\n103"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#outbreak-map",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#outbreak-map",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Outbreak map",
+    "text": "Outbreak map\n\n\n\n\n\n\n\n\nFigure 3: Spatial distribution of confirmed HPAI outbreaks (coloured by species) relative to the total farm population (grey points). County boundaries shown."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#outbreaks-by-county",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#outbreaks-by-county",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Outbreaks by county",
+    "text": "Outbreaks by county\n\n\n\n\nTable 5: Outbreaks by county, with total farm population and attack rate.\n\n\n\n\n\n\nCounty\nTotal Farms\nOutbreaks\nAttack Rate (%)\n\n\n\n\nBerks\n1151\n44\n3.8\n\n\nSusquehanna\n572\n22\n3.8\n\n\nIndiana\n515\n20\n3.9\n\n\nAllegheny\n820\n5\n0.6\n\n\nLuzerne\n663\n4\n0.6\n\n\nLancaster\n654\n3\n0.5\n\n\nLycoming\n469\n3\n0.6\n\n\nCumberland\n854\n2\n0.2"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#temporal-spatial-progression",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#temporal-spatial-progression",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Temporal-spatial progression",
+    "text": "Temporal-spatial progression\n\n\n\n\n\n\n\n\nFigure 4: Spatial progression of outbreaks over time. Point colour indicates timing (darker = earlier). County boundaries shown for reference."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#production-type-map",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#production-type-map",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Production type map",
+    "text": "Production type map\n\n\n\n\n\n\n\n\nFigure 5: Spatial distribution of outbreaks coloured by production type."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#network-summary",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#network-summary",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Network summary",
+    "text": "Network summary\n\n\n\n\nTable 6: Movement network summary statistics.\n\n\n\n\n\n\nMetric\nValue\n\n\n\n\nTotal movements recorded\n7,187\n\n\nDate range\nSep 01, 2025 – Jan 13, 2026\n\n\nUnique source farms (all broiler 1)\n1,248\n\n\nUnique destination farms (all broiler 2)\n2,746\n\n\nTotal farms in network\n3,994\n\n\nCase farms in network\n74 of 103\n\n\n— as source (broiler 1)\n18\n\n\n— as destination (broiler 2)\n56"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#movement-volume-over-time",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#movement-volume-over-time",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Movement volume over time",
+    "text": "Movement volume over time\n\n\n\n\n\n\n\n\nFigure 6: Weekly movement volume. The vertical dashed line marks the date of the first confirmed outbreak (December 22, 2025). Movement volumes decline during the outbreak period."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#case-farm-involvement",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#case-farm-involvement",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Case farm involvement",
+    "text": "Case farm involvement\n\n\n\n\nTable 7: Movements involving confirmed case farms: timing relative to confirmation and direct case-to-case links.\n\n\n\n\n\n\nMetric\nCount\n\n\n\n\nMovements FROM case farms\n88\n\n\n— before confirmation\n85\n\n\n— on day of confirmation\n3\n\n\n— after confirmation\n0\n\n\nMovements TO case farms\n165\n\n\n— before confirmation\n165\n\n\nDirect case → case movements\n3"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#network-visualisation",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#network-visualisation",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Network visualisation",
+    "text": "Network visualisation\n\n\n\n\n\n\n\n\nFigure 7: Movement network graph. Nodes represent farms; edges represent recorded movements (aggregated). Node colour indicates case status; node shape indicates production type (broiler 1 = circle, broiler 2 = triangle). Only the connected component containing at least one case farm is shown to reduce visual clutter."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#confirmed-case-culling",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#confirmed-case-culling",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Confirmed case culling",
+    "text": "Confirmed case culling\n\n\n\n\nTable 8: Culling status for confirmed HPAI outbreaks and preventive culls.\n\n\n\n\n\n\nType\nCompleted\nIn Progress\nPlanned\nTotal\n\n\n\n\nConfirmed outbreaks\n51\n11\n41\n103\n\n\nPreventive culls\n11\n1\n40\n52\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 8: Timeline of culling activity for confirmed outbreaks. Each bar represents one farm, ordered by confirmation date. Colour indicates cull status. The gap between confirmation (left edge) and cull start shows the response delay."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#time-from-confirmation-to-culling",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#time-from-confirmation-to-culling",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Time from confirmation to culling",
+    "text": "Time from confirmation to culling\n\n\n\n\nTable 9: Time from confirmation to cull start (days) for confirmed outbreaks with culling data.\n\n\n\n\n\n\nN\nMean\nMedian\nMin\nMax\n\n\n\n\n103\n2.9\n3\n1\n6"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#preventive-culling",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#preventive-culling",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Preventive culling",
+    "text": "Preventive culling\nA total of 52 preventive culls have been ordered on farms not (yet) confirmed positive. These target farms identified through proximity or epidemiological links to confirmed cases.\n\n\n\n\nTable 10: Preventive culls by species, production type, and status.\n\n\n\n\n\n\nSpecies\nProduction Type\nPlanned\nCompleted\nIn Progress\nTotal\n\n\n\n\nDuck\nConventional\n20\n4\n1\n25\n\n\nChicken\nBroiler 2\n7\n3\n0\n10\n\n\nChicken\nBroiler 1\n8\n0\n0\n8\n\n\nDuck\nOrganic\n4\n4\n0\n8\n\n\nChicken\nLayer\n1\n0\n0\n1"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#data-not-included-in-this-report",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#data-not-included-in-this-report",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Data not included in this report",
+    "text": "Data not included in this report\n\nMortality ledger data: Individual farm mortality records (PDF format) are available for a subset of farms. These could provide insight into within-farm dynamics and time from infection to detection, but were not incorporated here.\nFarm activity data: Production activity logs (activity.csv) could contextualise which farms were actively stocked at the time of the outbreak, but were not used in this descriptive analysis.\nHigh-risk zone and wetland layers: Geospatial data on the designated high-risk zone (hrz_32626.geojson) and wetland/water body coverage (clc_32626.geojson) are available and could add context to the spatial maps, but were omitted to keep the maps focused on outbreak distribution."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/phase-1-q-1.html#analytical-limitations",
+    "href": "hpai-challenge/analysis/phase-1-q-1.html#analytical-limitations",
+    "title": "HPAI Outbreak: General Epidemic Description",
+    "section": "Analytical limitations",
+    "text": "Analytical limitations\n\nAttack rates are crude: The attack rates presented use total registered farms as the denominator. Not all farms may have been actively stocked during the outbreak period, so true attack rates among at-risk farms may differ.\nNo adjustment for spatial confounding: Differences in attack rates across species and production types may be partly or wholly explained by the geographic concentration of the outbreak rather than true biological differences.\nEpidemic curve right-truncation: The most recent days of the epidemic curve are likely incomplete due to delays between suspicion and confirmation. The apparent case count in the final days may underestimate the true incidence.\nMovement network is descriptive only: The movement section presents network structure and case involvement but does not model whether movements are associated with infection risk. Temporal precedence (movements before confirmation) does not establish causation. The network also only covers chicken broiler farms, so transmission pathways for duck and layer farms remain unobserved.\nNo formal statistical testing: This report is purely descriptive. Differences in attack rates have not been tested for statistical significance, and no regression or spatial modelling has been applied."
   },
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "website-template",
+    "title": "CMMID Outbreak Response",
     "section": "",
-    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+    "text": "Shared resources to support outbreak response theme activity."
+  },
+  {
+    "objectID": "index.html#hpai-modelling-challenge",
+    "href": "index.html#hpai-modelling-challenge",
+    "title": "CMMID Outbreak Response",
+    "section": "HPAI Modelling Challenge",
+    "text": "HPAI Modelling Challenge\nAnalysis reports for the simulated HPAI outbreak scenario (WILIMAN-ID modelling challenge).\n\nPhase 1\n\nGeneral Epidemic Description — outbreak distribution by species and production type, epidemic timeline, spatial maps, movement network, and culling response\nTemporal Analysis — epidemic curves, growth rate estimation, and detection delay analysis"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html",
+    "href": "hpai-challenge/analysis/temporal.html",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "",
+    "text": "This report presents a temporal analysis of the ongoing HPAI (Highly Pathogenic Avian Influenza) outbreak affecting poultry farms in the region. The analysis covers the period from December 20, 2025 through January 13, 2026, examining epidemic curves, detection patterns, and response timelines."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#data-summary",
+    "href": "hpai-challenge/analysis/temporal.html#data-summary",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Data Summary",
+    "text": "Data Summary\nThis analysis includes 103 confirmed HPAI cases spanning from December 22, 2025 to January 13, 2026 (a period of 22 days).\nData completeness: 4 case(s) are missing the date of suspicion, which affects detection delay calculations for those cases. These cases were detected through methods that may not have a clear “suspicion” date (likely preshipment testing or contact tracing)."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#primary-epidemic-curve",
+    "href": "hpai-challenge/analysis/temporal.html#primary-epidemic-curve",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Primary Epidemic Curve",
+    "text": "Primary Epidemic Curve\n\n\n\n\n\n\n\n\nFigure 1: Daily epidemic curve showing HPAI cases by date of suspicion and date of confirmation. The 7-day moving average (red line) smooths daily variation to show the underlying trend.\n\n\n\n\n\nThe epidemic curve shows exponential growth in the early phase of the outbreak (late December 2025), with cases detected through both passive surveillance (following clinical suspicion) and confirmation. The peak detection period occurred around January 12 with 17 cases confirmed in a single day.\nThe 7-day moving average indicates sustained transmission throughout the observation period, with the outbreak showing signs of continued acceleration by mid-January 2026."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#weekly-epidemic-curve",
+    "href": "hpai-challenge/analysis/temporal.html#weekly-epidemic-curve",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Weekly Epidemic Curve",
+    "text": "Weekly Epidemic Curve\n\n\n\n\n\n\n\n\nFigure 2: Weekly epidemic curve showing HPAI cases by detection method. Stacked bars show the composition of detection methods, while the line shows cumulative case count. Week labels indicate the Monday start date of each epidemiological week.\n\n\n\n\n\n\n\n\n\nTable 1: Weekly case summary showing progression of the outbreak and detection method composition\n\n\n\n\n\n\nWeek\nStart Date\nWeekly Cases\nCumulative\nGrowth Rate (%)\n\n\n\n\nWeek 1\nDec 22\n4\n4\nNA\n\n\nWeek 2\nDec 29\n20\n24\n400.0\n\n\nWeek 3\nJan 05\n48\n72\n140.0\n\n\nWeek 4\nJan 12\n31\n103\n-35.4\n\n\n\n\n\n\n\n\nThe weekly analysis reveals:\n\nWeek 1-2 (Dec 20-Jan 2): Initial exponential growth phase with 24 cases\nWeek 3 (Jan 3-9): Peak detection period with sustained high case counts\nWeek 4 (Jan 10-13): Continued detection at elevated levels (incomplete week)"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#growth-rate-analysis",
+    "href": "hpai-challenge/analysis/temporal.html#growth-rate-analysis",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Growth Rate Analysis",
+    "text": "Growth Rate Analysis\n\n\n\n\nTable 2: Outbreak growth metrics calculated from the early exponential phase (first 14 days)\n\n\n\n\n\n\nMetric\nValue\nInterpretation\n\n\n\n\nDaily growth rate (r)\n0.228\n22.8% daily increase\n\n\nDoubling time (days)\n3.0\nDays to double case count\n\n\nEstimated R₀\n3.93\nAvg. secondary cases per case\n\n\nGeneration time assumed (days)\n6\nTypical HPAI transmission\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 3: Log-scale plot of cumulative cases during the early outbreak period showing exponential growth pattern. The fitted line represents the exponential growth model used to calculate doubling time.\n\n\n\n\n\nThe early outbreak phase demonstrates moderate exponential growth with a doubling time of approximately 3.0 days. This growth rate is consistent with sustained transmission and suggests that control measures were needed to interrupt transmission chains."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#time-from-suspicion-to-confirmation",
+    "href": "hpai-challenge/analysis/temporal.html#time-from-suspicion-to-confirmation",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Time from Suspicion to Confirmation",
+    "text": "Time from Suspicion to Confirmation\nAmong the 99 cases with complete date information, the time from suspicion to laboratory confirmation averaged 1.9 days (median: 2.0 days, IQR: 1.0-2.0 days).\n\n\n\n\nTable 3: Summary statistics for detection delay (days from suspicion to confirmation)\n\n\n\n\n\n\nStatistic\nDays\n\n\n\n\nN Cases\n99.0\n\n\nMean\n1.9\n\n\nMedian\n2.0\n\n\nSD\n1.0\n\n\nMin\n1.0\n\n\nQ1\n1.0\n\n\nQ3\n2.0\n\n\nMax\n5.0\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 4: Distribution of detection delays showing time from clinical suspicion to laboratory confirmation. The red dashed line indicates the median delay.\n\n\n\n\n\nDetection delays are generally short, reflecting efficient laboratory testing and reporting systems. The distribution shows:\n\nMinimum delay: 1 day(s) - indicating same-day or next-day confirmation possible\nMaximum delay: 5 days - may represent cases with initial negative results or testing delays\nMost cases (50%) confirmed within 1.0-2.0 days of suspicion"
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#detection-delay-over-time",
+    "href": "hpai-challenge/analysis/temporal.html#detection-delay-over-time",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Detection Delay Over Time",
+    "text": "Detection Delay Over Time\n\n\n\n\n\n\n\n\nFigure 5: Temporal trend in detection delays throughout the outbreak period. The smoothed line (loess) shows whether detection efficiency improved or declined over time. Points are colored by detection method.\n\n\n\n\n\nThe temporal trend analysis reveals whether detection efficiency changed as the outbreak progressed. The smoothed trend line indicates that detection delays remained consistently short, suggesting laboratory capacity kept pace with case load."
+  },
+  {
+    "objectID": "hpai-challenge/analysis/temporal.html#detection-delay-by-method",
+    "href": "hpai-challenge/analysis/temporal.html#detection-delay-by-method",
+    "title": "HPAI Outbreak Temporal Analysis",
+    "section": "Detection Delay by Method",
+    "text": "Detection Delay by Method\n\n\n\n\nTable 4: Detection delays stratified by surveillance method. Sample sizes and summary statistics are shown for each detection pathway.\n\n\n\n\n\n\nDetection Method\nN\nMean (days)\nMedian (days)\nSD\nRange\n\n\n\n\nPassive\n96\n1.9\n2\n1\n1-5\n\n\nPreshipment\n3\n1.0\n1\n0\n1-1\n\n\n\nNote: \n\n\n\n\n\n\n\n Kruskal-Wallis test: χ² = 3.50, p = 0.061\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nComparison across detection methods shows:\n\nPassive surveillance (96 cases): Mean delay 1.9 days - reflects clinical detection and farmer reporting\nPreshipment testing (3 cases): Mean delay 1.0 days - may detect subclinical infections\nContact tracing (0 cases): No cases with delay data or suspicion dates - proactive surveillance\n\nDetection delays appear similar across methods, indicating consistent laboratory processing regardless of detection pathway."
   }
 ]

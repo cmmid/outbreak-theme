@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://cmmid.github.io/outbreak-theme/about.html</loc>
-    <lastmod>2026-01-27T20:35:00.986Z</lastmod>
+    <loc>https://cmmid.github.io/outbreak-theme/hpai-challenge/analysis/phase-1-q-1.html</loc>
+    <lastmod>2026-02-16T11:39:39.869Z</lastmod>
   </url>
   <url>
     <loc>https://cmmid.github.io/outbreak-theme/index.html</loc>
-    <lastmod>2026-01-27T20:35:00.986Z</lastmod>
+    <lastmod>2026-02-16T11:38:18.434Z</lastmod>
+  </url>
+  <url>
+    <loc>https://cmmid.github.io/outbreak-theme/hpai-challenge/analysis/temporal.html</loc>
+    <lastmod>2026-02-16T11:39:54.500Z</lastmod>
   </url>
 </urlset>
