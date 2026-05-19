@@ -1,0 +1,238 @@
+# Comparing consensus-based and LLM-driven approaches to outbreak situation assessment: a prospective comparison using the HPAI Modelling Challenge
+
+## Study design (draft for pre-registration)
+
+**Version:** 0.1 (first draft)
+**Date:** 10 April 2026
+**Authors:** [Kath Sherratt, JUNIPER facilitator TBC, others TBC]
+
+---
+
+## 1. Background and rationale
+
+Collaborative modelling is widely used in outbreak response to pool expertise and synthesise evidence across multiple groups (Reich et al., 2022). Combining multiple models into ensemble forecasts often outperforms individual predictions (Cramer et al., 2022; Sherratt et al., 2023). However, collaborative processes are costly and vulnerable to cognitive and social biases, including anchoring, groupthink, and dominance effects (Waltz et al., 2025). There is limited outbreak-specific guidance on structured methods for creating rapid narrative syntheses, leaving the formation of "consensus statements" largely subjective.
+
+Separately, large language models (LLMs) are being explored as tools for epidemiological analysis and forecasting, with emerging evidence of their capacity to integrate heterogeneous data types and produce structured situation assessments (Du et al., 2024; Nature Computational Science, 2025). Human-in-the-loop (HITL) systems, where LLMs perform analysis under human oversight, represent a practical middle ground between fully automated and fully expert-driven approaches. These have not yet been systematically compared with structured human consensus processes in an outbreak modelling context.
+
+The HPAI Modelling Challenge (WiliMan-ID, 2025-2026) provides a unique opportunity for such a comparison. It simulates an HPAI outbreak on a fictional island ("Jolly Island") using in silico data with known ground truth, allowing evaluation of accuracy against typically unobservable parameters including time-varying reproduction number (Rt). The challenge runs over three monthly rounds (February-April 2026), with participating teams receiving progressively updated synthetic datasets.
+
+## 2. Aim
+
+To compare a structured narrative consensus approach (drawing on independent expert modelling teams) with an LLM-driven, human-in-the-loop modelling approach, evaluating their outputs for accuracy, interpretability, and utility in the context of a simulated HPAI outbreak.
+
+## 3. Research questions
+
+1. How do structured consensus statements and LLM-driven assessments compare in terms of accuracy against known ground truth?
+2. What are the key areas of agreement and divergence between approaches, and what drives the differences?
+3. What are the relative strengths and limitations of each approach in terms of interpretability and utility for decision-making?
+4. What biases (cognitive, methodological, or computational) are identifiable in each approach?
+
+## 4. Study design
+
+This is a prospective, parallel-group comparison study embedded within an existing modelling challenge. The study has three phases: (1) independent assessment during the challenge, (2) consensus synthesis after each round, and (3) post-challenge comparative evaluation.
+
+[ADAPTATION NOTE: the design below assumes 3 rounds have already been completed. If pre-registration occurs before final results are known to the study team, this strengthens the credibility of the comparison. The key claim is that the consensus reviewers have not seen the ground truth or the LLM/HITL outputs at the time of drafting the consensus. Document the exact timeline of what was seen when.]
+
+### 4.1 Setting and participants
+
+**Modelling challenge:** The WiliMan-ID HPAI Modelling Challenge (https://www.wiliman-id.eu/modelling-challenge/). Simulated HPAI epizootic on "Jolly Island" using synthetic data with known ground truth.
+
+**Expert teams:** Four UK-based modelling groups participating independently in the challenge. Each team uses its own modelling approach (ranging from mechanistic to statistical, deterministic to stochastic).
+
+[ADAPTATION NOTE: list the four teams' methodological approaches here once this can be disclosed. The diversity of approaches is analytically important.]
+
+**LLM/HITL team:** One team at the same institution as the lead author, producing results from an LLM-driven, human-in-the-loop modelling system. The lead author has had no involvement in this team's work and has not viewed their results.
+
+**Consensus reviewers:** Two individuals: the lead author (an epidemiologist with expertise in collaborative modelling and forecast evaluation) and the JUNIPER consortium facilitator.
+
+### 4.2 Data
+
+Each participating team submits structured reports per round, following a standardised template. Reports contain two components:
+
+**Model description:** model type (mechanistic/statistical), stochastic/deterministic nature, spatial scale, interaction mechanisms, state variables, parameter tables with sources, calibration approach, and initial conditions.
+
+**Round-specific results:** Teams are asked to address a set of questions that evolve across phases. These combine descriptive epidemiology, quantitative predictions, and policy-relevant judgements:
+
+Phase 1 questions include: a general description of the ongoing epidemic (incidence timeline, spatial distribution by species/production type); 4-week predictions of temporal and spatial evolution; characterisation of relative contribution of chicken vs duck farms to spread; and assessment of two intervention scenarios (focusing preventive culling on chickens only; reallocating culling effort from preventive to faster reactive culling).
+
+Phase 3 questions include: description of the apparently-resolved epidemic; assessment of when restocking could safely begin; estimation of outbreaks averted by preventive culling; and estimation of the culling capacity needed to ensure (95% confidence) virus eradication by a given date.
+
+Teams also report effort (person-hours) and self-assessed model strengths and limitations.
+
+[NOTE: Phase 2 template not available -- to be obtained from challenge organisers.]
+
+Ground truth data, including true transmission parameters, are held by the challenge organisers and will be made available to all participants after the challenge concludes.
+
+## 5. Methods
+
+### 5.1 Phase 1: Independent model submissions (during challenge)
+
+Each of the four UK teams submits its results independently to the challenge, following the standard submission template, in each of the three rounds (monthly, February-April 2026). This phase requires no additional intervention from the study team.
+
+The LLM/HITL team likewise submits independently.
+
+### 5.2 Phase 2: Consensus synthesis (post-round, pre-truth)
+
+After each round's submission deadline, the two consensus reviewers independently read all four UK teams' submissions for that round.
+
+**Consensus process (adapted modified-Delphi):**
+
+[ADAPTATION NOTE: this section needs the most refinement. The small number of "experts" (4 teams, 2 reviewers) means this is not a formal Delphi -- it's closer to a structured narrative synthesis with dual-reviewer agreement. Consider whether "modified nominal group technique" or "structured narrative synthesis" better describes what you're doing. The ACCORD guideline (Humphrey-Mayall et al., 2022) for reporting consensus methods may be useful for structuring this.]
+
+Step 1: Each reviewer independently reads all four UK team submissions and drafts a summary consensus statement structured around the round's specific questions. For each question posed in the template (e.g. "characterise the relative contribution of chicken farms to virus spread"), the reviewer drafts:
+
+- A synthesised answer drawing on all four teams' responses
+- The degree of agreement across teams (full agreement / partial agreement / divergent)
+- Where teams diverge: which team(s) differ, and the reviewer's assessment of why (different model structures, different parameter assumptions, different data use)
+- An overall confidence rating for the synthesised answer (high / moderate / low), with justification
+- Any caveats or limitations noted by the teams that affect the synthesis
+
+Step 2: The two reviewers compare their independent drafts and reconcile differences through discussion. Where they disagree, both positions are documented with reasoning.
+
+Step 3: A final consensus statement is produced for each round.
+
+**Key design features to mitigate bias:**
+
+- Reviewers are blinded to ground truth at the time of synthesis
+- Reviewers have not seen LLM/HITL outputs
+- Independent drafting before reconciliation reduces anchoring
+- Disagreements are documented rather than forced to resolution
+
+**Timing:** Consensus statements should be produced within [TBC] days of each round's submission deadline, and before any ground truth data are released.
+
+### 5.3 Phase 3: Comparative evaluation (post-challenge)
+
+Once ground truth is released by the challenge organisers, the following comparisons are made.
+
+#### 5.3.1 Accuracy
+
+Compare consensus statements and LLM/HITL outputs against ground truth across two categories:
+
+**Quantitative predictions:**
+
+- 4-week epidemic trajectory forecasts (Phase 1): assessed against observed incidence by species, production type, and spatial unit. Metrics: mean absolute error (MAE), coverage of prediction intervals (if provided), and directional accuracy (correct identification of increasing/decreasing/stable trend).
+- Intervention impact estimates (Phase 3): outbreaks averted by preventive culling; required culling capacity for 95% eradication confidence. Assessed as deviation from ground truth values.
+
+**Qualitative/strategic assessments:**
+
+- Characterisation of epidemic phase and drivers (e.g. relative role of chicken vs duck farms)
+- Policy recommendations (e.g. culling reallocation, restocking timing)
+- Appropriate characterisation of uncertainty
+
+These will be assessed using a structured rubric with the following dimensions, each scored on a 3-point scale (incorrect/partially correct/correct):
+
+1. Factual accuracy of epidemiological description
+2. Correctness of the directional conclusion for each intervention question
+3. Appropriateness of reasoning and evidence cited
+4. Calibration of expressed confidence (over-confident, well-calibrated, under-confident)
+
+[ADAPTATION NOTE: the rubric is a key methodological contribution. Pilot it on one round before applying to all three. Consider whether a single assessor (study team) or independent blinded assessors should score -- the latter is stronger but may not be feasible for a first paper. At minimum, both consensus reviewers should independently score the LLM/HITL output and vice versa.]
+
+#### 5.3.2 Interpretability
+
+Assess interpretability by comparing:
+
+- Transparency of reasoning (can the reader trace how conclusions follow from evidence?)
+- Appropriate characterisation of uncertainty
+- Identification of assumptions and limitations
+- Coherence of the narrative
+
+Assessment approach: [ADAPTATION NOTE: options include (a) self-assessment by study team, (b) independent rating by blinded assessors unfamiliar with the challenge, (c) structured survey of intended end-users (e.g. public health professionals). Option (b) or (c) would be stronger but more resource-intensive. Consider what's feasible.]
+
+#### 5.3.3 Utility
+
+Assess the practical utility of each approach by considering:
+
+- Timeliness (time from data release to output)
+- Resource requirements (person-hours, computational costs)
+- Actionability (does the output suggest concrete decisions?)
+- Adaptability to new data (how easily does each approach update?)
+
+[ADAPTATION NOTE: utility assessment is where the stakeholder perspective comes in. If possible, present both outputs (anonymised) to 2-3 public health professionals and gather structured feedback. Even a lightweight version of this would strengthen the paper considerably.]
+
+#### 5.3.4 Bias identification
+
+Qualitative analysis of identifiable biases in each approach:
+
+For the consensus approach:
+
+- Anchoring (were consensus statements over-influenced by one dominant model?)
+- Groupthink (did reconciliation suppress legitimate disagreement?)
+- Availability bias (were recent or salient features over-weighted?)
+- Framing effects (did the submission template structure the consensus in potentially distorting ways?)
+
+For the LLM/HITL approach:
+
+- Hallucination (did the LLM generate plausible but incorrect claims?)
+- Training data bias (did the LLM's priors reflect historical patterns that don't apply to this simulated scenario?)
+- Automation bias (did the human reviewer defer excessively to LLM outputs?)
+
+[ADAPTATION NOTE: this section is speculative until you see the actual outputs. Frame it as exploratory rather than confirmatory.]
+
+### 5.4 Post-challenge debrief
+
+A JUNIPER-specific workshop will be held after the challenge to:
+
+- Share individual team experiences and methodological reflections
+- Review the comparative findings above
+- Discuss implications for future collaborative modelling exercises
+- Identify recommendations for structured consensus processes in outbreak response
+
+[ADAPTATION NOTE: consider whether the workshop generates data (i.e. is it part of the research, requiring ethics?) or is purely a dissemination/reflection activity. If the former, document the facilitation approach.]
+
+## 6. Outcomes
+
+**Primary outcome:** Accuracy of consensus vs. LLM/HITL assessments against ground truth, assessed per round and overall.
+
+**Secondary outcomes:** Interpretability, utility, and identifiable biases in each approach.
+
+**Exploratory outcomes:** How accuracy and agreement evolve across rounds (i.e. does performance improve as more data accumulates?); areas where the approaches complement each other.
+
+## 7. Sample size and statistical considerations
+
+This is an n=3 comparison (three rounds) with n=4 contributing teams, which limits formal statistical inference. The study is primarily descriptive and comparative rather than hypothesis-testing. Quantitative metrics (where applicable) will be reported with uncertainty but interpreted cautiously given the small sample.
+
+[ADAPTATION NOTE: be explicit about what this study can and cannot conclude. The value is in the structured comparison and qualitative insights, not in statistical power. Frame it as a case study / proof of concept.]
+
+## 8. Ethics
+
+[ADAPTATION NOTE: check whether LSHTM ethics review is required. Key considerations: (a) the modelling teams are professionals participating in a public challenge, not research subjects; (b) the consensus reviewers are investigators; (c) the debrief workshop may or may not constitute data collection. If team members' views or experiences are formally analysed, ethics approval may be needed. Consult early.]
+
+## 9. Limitations (to acknowledge)
+
+- Small number of participating teams (4) limits generalisability
+- Simulated rather than real outbreak data; findings may not transfer to real-world settings where data quality, timeliness, and political pressures differ
+- Consensus reviewers are not blinded to team identities (unavoidable given the structured reading required)
+- The comparison is between a specific consensus process and a specific LLM/HITL implementation; results may not generalise to other instantiations of either approach
+- The consensus approach is applied retrospectively to submissions, not in real-time during an actual outbreak
+
+## 10. Dissemination
+
+Target journal: [TBC - consider Epidemics (which has a special issue on the HPAI challenge), PLOS Computational Biology, or Eurosurveillance]
+
+[ADAPTATION NOTE: the Epidemics special issue on the HPAI modelling challenge would be a natural home and would reach the right audience. Check submission timelines.]
+
+## 11. Timeline
+
+| Phase | Activity | Timing |
+|-------|----------|--------|
+| Pre-registration | Finalise and register study design | April 2026 |
+| Phase 1 | Independent team submissions (Rounds 1-3) | Feb-April 2026 |
+| Phase 2 | Consensus synthesis per round | After each round deadline |
+| Phase 3 | Ground truth release and comparative evaluation | May-June 2026 |
+| Workshop | JUNIPER debrief | June-July 2026 |
+| Writing | Manuscript preparation | July-September 2026 |
+| Submission | Target journal submission | September-October 2026 |
+
+## 12. References
+
+[To be completed. Key references to include:]
+
+- Cramer, E.Y. et al. (2022). Evaluation of individual and ensemble probabilistic forecasts of COVID-19 mortality in the United States. PNAS.
+- Du, Y. et al. (2024). Advancing real-time pandemic forecasting using large language models. arXiv.
+- Humphrey-Mayall, W. et al. (2022). ACCORD guideline for reporting consensus-based methods. Research Integrity and Peer Review.
+- Medley, G.F. (2022). [collaborative modelling for decision support - check exact ref]
+- Reich, N.G. et al. (2022). Collaborative hubs: making the most of predictive epidemic modelling. American Journal of Public Health.
+- Sherratt, K. et al. (2023). Predictive performance of multi-model ensemble forecasts of COVID-19 across European nations. eLife.
+- Waltz et al. (2025). [biases in group modelling - need full reference]
+- WiliMan-ID (2025). The HPAI Modelling Challenge. https://www.wiliman-id.eu/modelling-challenge/

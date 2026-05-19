@@ -1,0 +1,48 @@
+# hpai challenge
+
+## context
+
+Modelling work relies substantially on expert judgement. Collaborative modelling efforts are increasingly used to pool expertise and resources across multiple groups, offering a synthesis of available evidence (Reich et al., 2022). Meanwhile, combining multiple models into an ensemble forecast is often more accurate than component predictions (Cramer et al., 2022). 
+
+However, collaborative work can be costly and challenging: identifying appropriate expertise, coordinating across groups, and managing group dynamics (Medley 2022, Sherratt et al., 2023). In particular, unstructured groupwork is vulnerable to cognitive, motivational, and social biases (Waltz et al. 2025), compromising the validity of resulting advice. There is little outbreak-specific guidance on how to best create a rapid narrative synthesis, leaving the creation of 'consensus statements' highly subjective.
+
+Meanwhile, increasing computational resources enable use of LLMs for such modelling work. There is new consideration for how best to automate real-time modelling workflows, to support easier implementation of best practices while minimising time demands. As very early stage projects, these have not yet been widely used or validated.
+
+The HPAI Modelling Challenge aims to simulate the epidemiological setting of a pandemic over several months to support collaborative pandemic preparedness. Multiple international modelling groups will submit predictions of epidemic outcomes for a simulated highly pathogenic avian influenza (HPAI) outbreak on the fictional “Jolly Island.” The Challenge uses in silico data with known ground truth, allowing evaluation of accuracy against typically unobservable parameters including the (time-varying) reproduction number (Rt). The challenge plays out over 3 rounds (1/month). Info: https://www.wiliman-id.eu/modelling-challenge/
+
+Several existing modelling groups within the UK are participating, with a range of bespoke modelling approaches. Additionally, one team is producing results from an LLM-driven, human-in-the-loop modelling system.
+
+
+## project idea
+
+aim: creating a consensus statement from independent UK teams ("narrative consensus approach"); and comparing to the LLM-driven modelling ("HITL"). evaluating for: accuracy, interpretability, utility
+
+### sketch
+Collate independent uk teams' responses from each round
+Two reviewers read responses and draft a consensus statement for each round, using/adapting delphi guidelines
+
+After the challenge:
+Compare consensus and llm with “truth data”
+Highlight areas of agreement, differences, biases
+
+finally: Hold a JUNIPER-specific debrief / workshop after the challenge to share experience, learnings, and review the above
+
+#### data
+
+each team submits:
+
+##### team info
+
+Team Name
+Name(s) of Team Member(s)
+Team Contact Email(s)
+Affiliation(s) of Each Player
+Short description of the team’s foreseen modelling approach (e.g., mechanistic vs. statistical, deterministic vs. stochastic, etc.)
+Motivation (briefly describe why your team is interested in this challenge)
+
+##### round specific results
+
+see docs/ for the document template that each team submits in each round (round 2 is currently missing).
+
+## study design
+
